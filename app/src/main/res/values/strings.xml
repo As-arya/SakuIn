@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Sakuin</string>
+
+    <!-- Bottom navigation (icon-only, so these are content descriptions) -->
+    <string name="nav_home">Home</string>
+    <string name="nav_transactions">Transactions</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_wallets">Wallets</string>
+    <string name="nav_add_transaction">Add transaction</string>
+
+    <!-- Screen titles -->
+    <string name="title_transactions">Transactions</string>
+    <string name="title_stats">Stats</string>
+    <string name="title_wallets">Wallets</string>
+    <string name="title_add_transaction">Add Transaction</string>
+    <string name="greeting">Hello, %1$s</string>
+    <string name="placeholder_coming_soon">Coming soon</string>
 </resources>
