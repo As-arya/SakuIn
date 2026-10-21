@@ -1,0 +1,60 @@
+# ===== Gradle =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# ===== Local config (SDK path, secrets) =====
+local.properties
+*.keystore
+*.jks
+keystore.properties
+secrets.properties
+google-services.json
+
+# ===== Android Studio / IntelliJ =====
+*.iml
+*.ipr
+*.iws
+.idea/*
+!.idea/codeStyles/
+!.idea/runConfigurations/
+captures/
+.navigation/
+out/
+
+# ===== Android build outputs =====
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+release/
+
+# ===== Native (NDK / CMake) =====
+.externalNativeBuild/
+.cxx/
+
+# ===== Logs & crash dumps =====
+*.log
+*.hprof
+hs_err_pid*
+replay_pid*
+
+# ===== Lint =====
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# ===== OS files =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ===== Editors =====
+.vscode/
+*.swp
+*~
