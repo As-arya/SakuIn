@@ -28,9 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import Sakuin.Project.R
 import Sakuin.Project.ui.theme.SakuinTheme
+
+/** Marks a screen or section title so TalkBack users can jump between headings. */
+fun Modifier.asHeading(): Modifier = semantics { heading() }
 
 /** App bar for detail and form screens (Figma `TopBar`). */
 @Composable
@@ -60,7 +65,9 @@ fun SakuinTopBar(
         }
         Text(
             text = title,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .asHeading(),
             style = SakuinTheme.typography.titleMedium,
             color = SakuinTheme.colors.textPrimary,
             maxLines = 1,

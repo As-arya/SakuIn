@@ -69,7 +69,8 @@
     <string name="home_scan">Scan</string>
     <string name="home_recent">Recent transactions</string>
     <string name="home_see_all">See all</string>
-    <string name="home_recent_empty">No transactions yet. Tap + to add one.</string>
+    <string name="home_recent_empty_title">No transactions yet</string>
+    <string name="home_recent_empty_body">Tap + to add your first income or expense.</string>
     <string name="title_scan">Scan Receipt</string>
 
     <!-- Receipt scan -->
@@ -88,7 +89,6 @@
     <string name="scan_receipt">Receipt</string>
     <string name="scan_change_date">Change date</string>
     <string name="scan_ai_suggested">Suggested by AI</string>
-    <string name="scan_show_all_items">Show all %1$d items</string>
     <string name="receipt_photo">Receipt photo</string>
     <string name="scan_offline_title">You’re offline</string>
     <string name="scan_offline_body">Receipt scan needs internet. You can still add it manually.</string>
@@ -115,6 +115,8 @@
     <string name="stats_month">Month</string>
     <string name="stats_year">Year</string>
     <string name="stats_net">Net</string>
+    <string name="stats_previous_period">Previous period</string>
+    <string name="stats_next_period">Next period</string>
     <string name="stats_income_vs_expense">Income vs Expense</string>
     <string name="stats_expense_by_category">Expense by category</string>
     <string name="stats_total">Total</string>
@@ -143,7 +145,8 @@
     <string name="wallet_type_card">Card</string>
     <string name="wallet_type_ewallet">E-wallet</string>
     <string name="wallets_total_balance">Total balance</string>
-    <string name="wallets_empty">No wallets yet. Add one to start tracking.</string>
+    <string name="wallets_empty_title">No wallets yet</string>
+    <string name="wallets_empty_body">Add a wallet to start tracking your money.</string>
     <string name="wallet_add">Add wallet</string>
     <string name="wallet_add_title">Add Wallet</string>
     <string name="wallet_edit_title">Edit Wallet</string>
@@ -151,7 +154,8 @@
     <string name="wallet_archive">Archive wallet</string>
     <string name="wallet_balance">Balance</string>
     <string name="wallet_history">History</string>
-    <string name="wallet_history_empty">No transactions yet</string>
+    <string name="wallet_history_empty_title">No transactions yet</string>
+    <string name="wallet_history_empty_body">Money in, out or transferred with this wallet shows up here.</string>
     <string name="wallet_picker_title">Choose wallet</string>
     <string name="wallet_picker_add">Add new wallet</string>
 
@@ -168,7 +172,11 @@
 
     <!-- Transactions list -->
     <string name="transactions_search">Search transactions</string>
-    <string name="transactions_empty">No transactions this month.</string>
+    <string name="transactions_empty_title">No transactions</string>
+    <string name="transactions_empty_body">Nothing was recorded in %1$s.</string>
+    <string name="transactions_no_matches_title">No matches</string>
+    <string name="transactions_no_matches_body">Try another search or clear the filters.</string>
+    <string name="transactions_clear_filters">Clear filters</string>
     <string name="transaction_deleted">Transaction deleted</string>
     <string name="filter_all">All</string>
     <string name="filters_title">Filters</string>
@@ -183,6 +191,13 @@
 
     <!-- Settings & categories -->
     <string name="settings_group_data">Data</string>
+    <string name="settings_group_appearance">Appearance</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_currency_idr">IDR</string>
+    <string name="settings_group_scan">Receipt scan</string>
+    <string name="settings_ai_scan">AI receipt scan</string>
+    <string name="settings_keep_photos">Keep receipt photos</string>
     <string name="settings_offline_note">All data is stored offline on this device.\nSakuin %1$s</string>
     <string name="category_add">Add category</string>
     <string name="category_new">New category</string>
@@ -197,4 +212,9 @@
     <string name="transfer_negative_warning">%1$s will go below zero.</string>
     <string name="transfer_need_two_wallets">Add at least two wallets to make a transfer.</string>
     <string name="transfer_save">Save Transfer</string>
+
+    <plurals name="scan_show_all_items">
+        <item quantity="one">Show %1$d item</item>
+        <item quantity="other">Show all %1$d items</item>
+    </plurals>
 </resources>

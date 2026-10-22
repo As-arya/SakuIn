@@ -1,6 +1,8 @@
 package Sakuin.Project.ui.screens.home
 
 import androidx.annotation.DrawableRes
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,7 +46,9 @@ import Sakuin.Project.data.repository.BalanceSummary
 import Sakuin.Project.data.repository.TransactionRepository
 import Sakuin.Project.data.repository.WalletRepository
 import Sakuin.Project.ui.components.BalanceStack
+import Sakuin.Project.ui.components.asHeading
 import Sakuin.Project.ui.components.CircleIconButton
+import Sakuin.Project.ui.components.EmptyState
 import Sakuin.Project.ui.components.TransactionRow
 import Sakuin.Project.ui.sakuinViewModel
 import Sakuin.Project.ui.theme.SakuinTheme
@@ -66,6 +70,7 @@ data class HomeState(
     val balance: BalanceSummary = BalanceSummary(0, 0, 0, 0),
     val month: PeriodTotals = PeriodTotals(0, 0),
     val recent: List<TransactionWithDetails> = emptyList(),
+    val scanEnabled: Boolean = true,
     val loading: Boolean = true,
 )
 
@@ -80,8 +85,9 @@ class HomeViewModel(
         wallets.observeBalanceSummary(),
         transactions.observeTotals(YearMonth.now(zone).toTimeRange(zone)),
         transactions.observeRecent(limit = 5),
-    ) { name, balance, month, recent ->
-        HomeState(userName = name, balance = balance, month = month, recent = recent, loading = false)
+        settings.receiptScanEnabled,
+    ) { name, balance, month, recent, scanEnabled ->
+        HomeState(userName = name, balance = balance, month = month, recent = recent, scanEnabled = scanEnabled, loading = false)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeState())
 }
 
@@ -148,14 +154,16 @@ fun HomeScreen(
                 QuickAction(R.string.tab_expense, R.drawable.ic_arrow_up, { onAdd(TransactionType.EXPENSE) }, Modifier.weight(1f))
                 QuickAction(R.string.tab_income, R.drawable.ic_arrow_down, { onAdd(TransactionType.INCOME) }, Modifier.weight(1f))
                 QuickAction(R.string.tab_transfer, R.drawable.ic_transfer, { onAdd(TransactionType.TRANSFER) }, Modifier.weight(1f))
-                QuickAction(R.string.home_scan, R.drawable.ic_scan, onScan, Modifier.weight(1f))
+                if (state.scanEnabled) QuickAction(R.string.home_scan, R.drawable.ic_scan, onScan, Modifier.weight(1f))
             }
         }
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.home_recent),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .asHeading(),
                     style = SakuinTheme.typography.titleSmall,
                     color = colors.textPrimary,
                 )
@@ -172,14 +180,10 @@ fun HomeScreen(
         }
         if (!state.loading && state.recent.isEmpty()) {
             item {
-                Text(
-                    stringResource(R.string.home_recent_empty),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = SakuinTheme.spacing.xl),
-                    style = SakuinTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
-                    textAlign = TextAlign.Center,
+                EmptyState(
+                    icon = R.drawable.ic_receipt,
+                    title = stringResource(R.string.home_recent_empty_title),
+                    body = stringResource(R.string.home_recent_empty_body),
                 )
             }
         }
@@ -224,6 +228,7 @@ private fun SummaryCard(
             style = SakuinTheme.typography.bodyStrong,
             color = color,
             maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = SakuinTheme.typography.bodyStrong.fontSize),
         )
     }
 }
@@ -251,6 +256,12 @@ private fun QuickAction(
         ) {
             Icon(painterResource(icon), null, Modifier.size(22.dp), tint = colors.textPrimary)
         }
-        Text(stringResource(label), style = SakuinTheme.typography.caption, color = colors.textSecondary)
+        Text(
+            stringResource(label),
+            style = SakuinTheme.typography.caption,
+            color = colors.textSecondary,
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = SakuinTheme.typography.caption.fontSize),
+        )
     }
 }

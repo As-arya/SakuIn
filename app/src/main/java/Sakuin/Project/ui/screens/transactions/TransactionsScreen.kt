@@ -60,7 +60,9 @@ import Sakuin.Project.data.local.model.TransactionWithDetails
 import Sakuin.Project.data.local.model.WalletWithBalance
 import Sakuin.Project.data.repository.TransactionFilter
 import Sakuin.Project.ui.components.ButtonStyle
+import Sakuin.Project.ui.components.asHeading
 import Sakuin.Project.ui.components.CircleIconButton
+import Sakuin.Project.ui.components.EmptyState
 import Sakuin.Project.ui.components.SakuinButton
 import Sakuin.Project.ui.components.SakuinChip
 import Sakuin.Project.ui.components.TransactionRow
@@ -113,7 +115,7 @@ fun TransactionsScreen(onOpenTransaction: (Long) -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.title_transactions), style = SakuinTheme.typography.headlineLarge, color = colors.textPrimary)
+                    Text(stringResource(R.string.title_transactions), modifier = Modifier.asHeading(), style = SakuinTheme.typography.headlineLarge, color = colors.textPrimary)
                     CircleIconButton(
                         icon = R.drawable.ic_filter,
                         contentDescription = stringResource(R.string.filters_title),
@@ -135,15 +137,27 @@ fun TransactionsScreen(onOpenTransaction: (Long) -> Unit) {
             item { TypeChips(filter.type, viewModel::setType) }
             if (!state.loading && state.groups.isEmpty()) {
                 item {
-                    Text(
-                        stringResource(R.string.transactions_empty),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = SakuinTheme.spacing.xxl),
-                        style = SakuinTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                        textAlign = TextAlign.Center,
-                    )
+                    val filtered = query.isNotBlank() || filter.type != null || extraFilters
+                    if (filtered) {
+                        EmptyState(
+                            icon = R.drawable.ic_search,
+                            title = stringResource(R.string.transactions_no_matches_title),
+                            body = stringResource(R.string.transactions_no_matches_body),
+                            action = {
+                                SakuinButton(
+                                    text = stringResource(R.string.transactions_clear_filters),
+                                    onClick = viewModel::clearAll,
+                                    style = ButtonStyle.Secondary,
+                                )
+                            },
+                        )
+                    } else {
+                        EmptyState(
+                            icon = R.drawable.ic_receipt,
+                            title = stringResource(R.string.transactions_empty_title),
+                            body = stringResource(R.string.transactions_empty_body, MonthFormat.format(month)),
+                        )
+                    }
                 }
             }
             state.groups.forEach { group ->

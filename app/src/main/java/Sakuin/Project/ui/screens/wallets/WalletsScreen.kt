@@ -1,6 +1,8 @@
 package Sakuin.Project.ui.screens.wallets
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +38,9 @@ import Sakuin.Project.data.local.entity.WalletType
 import Sakuin.Project.data.local.model.WalletWithBalance
 import Sakuin.Project.data.repository.BalanceSummary
 import Sakuin.Project.ui.components.CircleIconButton
+import Sakuin.Project.ui.components.asHeading
+import Sakuin.Project.ui.components.EmptyState
+import Sakuin.Project.ui.components.SakuinButton
 import Sakuin.Project.ui.components.WalletIconBox
 import Sakuin.Project.ui.components.color
 import Sakuin.Project.ui.components.label
@@ -67,7 +72,7 @@ private fun WalletsContent(state: WalletsState, onAddWallet: () -> Unit, onOpenW
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(R.string.title_wallets), style = SakuinTheme.typography.headlineLarge, color = colors.textPrimary)
+                Text(stringResource(R.string.title_wallets), modifier = Modifier.asHeading(), style = SakuinTheme.typography.headlineLarge, color = colors.textPrimary)
                 CircleIconButton(
                     icon = R.drawable.ic_plus,
                     contentDescription = stringResource(R.string.wallet_add),
@@ -80,14 +85,11 @@ private fun WalletsContent(state: WalletsState, onAddWallet: () -> Unit, onOpenW
         item { TotalCard(state.summary, modifier = Modifier.padding(bottom = SakuinTheme.spacing.sm)) }
         if (!state.loading && state.wallets.isEmpty()) {
             item {
-                Text(
-                    stringResource(R.string.wallets_empty),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = SakuinTheme.spacing.xxl),
-                    style = SakuinTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
-                    textAlign = TextAlign.Center,
+                EmptyState(
+                    icon = R.drawable.ic_wallet,
+                    title = stringResource(R.string.wallets_empty_title),
+                    body = stringResource(R.string.wallets_empty_body),
+                    action = { SakuinButton(text = stringResource(R.string.wallet_add), onClick = onAddWallet, icon = R.drawable.ic_plus) },
                 )
             }
         }
@@ -114,7 +116,13 @@ private fun TotalCard(summary: BalanceSummary, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.md),
     ) {
         Text(stringResource(R.string.wallets_total_balance), style = SakuinTheme.typography.labelMedium, color = colors.textSecondary)
-        Text(formatRupiah(summary.total), style = SakuinTheme.typography.headlineLarge, color = colors.textPrimary)
+        Text(
+            formatRupiah(summary.total),
+            style = SakuinTheme.typography.headlineLarge,
+            color = colors.textPrimary,
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = SakuinTheme.typography.headlineLarge.fontSize),
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()

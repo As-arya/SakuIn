@@ -1,6 +1,8 @@
 package Sakuin.Project.ui.screens.stats
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +49,7 @@ import Sakuin.Project.data.local.model.PeriodTotals
 import Sakuin.Project.data.local.model.WalletWithBalance
 import Sakuin.Project.data.repository.MonthTotal
 import Sakuin.Project.ui.components.SakuinChip
+import Sakuin.Project.ui.components.asHeading
 import Sakuin.Project.ui.sakuinViewModel
 import Sakuin.Project.ui.theme.SakuinTheme
 import Sakuin.Project.util.formatRupiah
@@ -86,7 +89,9 @@ fun StatsScreen() {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.title_stats),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .asHeading(),
                     style = SakuinTheme.typography.headlineLarge,
                     color = SakuinTheme.colors.textPrimary,
                 )
@@ -167,13 +172,13 @@ private fun PeriodRow(
             }
         }
         IconButton(onClick = onPrevious, modifier = Modifier.size(32.dp)) {
-            Icon(painterResource(R.drawable.ic_chevron_left), stringResource(R.string.month_previous), Modifier.size(18.dp), tint = colors.textPrimary)
+            Icon(painterResource(R.drawable.ic_chevron_left), stringResource(R.string.stats_previous_period), Modifier.size(18.dp), tint = colors.textPrimary)
         }
         Text(periodLabel(selection), style = SakuinTheme.typography.labelMedium, color = colors.textSecondary)
         IconButton(onClick = onNext, enabled = canGoNext, modifier = Modifier.size(32.dp)) {
             Icon(
                 painterResource(R.drawable.ic_chevron_right),
-                stringResource(R.string.month_next),
+                stringResource(R.string.stats_next_period),
                 Modifier.size(18.dp),
                 tint = if (canGoNext) colors.textPrimary else colors.border,
             )
@@ -229,7 +234,7 @@ private fun ChartCard(title: String, legend: @Composable () -> Unit = {}, conten
         verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.lg),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, modifier = Modifier.weight(1f), style = SakuinTheme.typography.titleSmall, color = SakuinTheme.colors.textPrimary)
+            Text(title, modifier = Modifier.weight(1f).asHeading(), style = SakuinTheme.typography.titleSmall, color = SakuinTheme.colors.textPrimary)
             legend()
         }
         content()
@@ -328,9 +333,16 @@ private fun CategoryBreakdown(byCategory: List<CategoryTotal>) {
         Row(horizontalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.lg), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(124.dp), contentAlignment = Alignment.Center) {
                 Donut(slices, total)
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(R.string.stats_total), style = SakuinTheme.typography.caption, color = colors.textSecondary)
-                    Text(formatRupiahCompact(total), style = SakuinTheme.typography.bodyStrong, color = colors.textPrimary)
+                // Kept inside the donut's hole (about 87dp across); the amount shrinks to fit.
+                Column(Modifier.width(76.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.stats_total), style = SakuinTheme.typography.caption, color = colors.textSecondary, maxLines = 1)
+                    Text(
+                        formatRupiahCompact(total),
+                        style = SakuinTheme.typography.bodyStrong,
+                        color = colors.textPrimary,
+                        maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = SakuinTheme.typography.bodyStrong.fontSize),
+                    )
                 }
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {

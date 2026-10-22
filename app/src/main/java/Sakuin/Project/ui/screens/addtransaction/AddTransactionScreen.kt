@@ -77,10 +77,12 @@ fun AddTransactionScreen(onBack: () -> Unit, onAddWallet: () -> Unit, onScan: ()
             it.categoryRepository,
             it.transactionRepository,
             it.receiptStore,
+            it.settingsRepository,
         )
     }
     val colors = SakuinTheme.colors
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val scanEnabled by viewModel.scanEnabled.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf<PickerTarget?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     var viewingReceipt by remember { mutableStateOf(false) }
@@ -100,7 +102,7 @@ fun AddTransactionScreen(onBack: () -> Unit, onAddWallet: () -> Unit, onScan: ()
                     IconButton(onClick = { confirmDelete = true }) {
                         Icon(painterResource(R.drawable.ic_trash), stringResource(R.string.action_delete), tint = colors.expense)
                     }
-                } else if (viewModel.tab == TransactionType.EXPENSE) {
+                } else if (viewModel.tab == TransactionType.EXPENSE && scanEnabled) {
                     IconButton(onClick = onScan) {
                         Icon(painterResource(R.drawable.ic_scan), stringResource(R.string.title_scan), tint = colors.textPrimary)
                     }

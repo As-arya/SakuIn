@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed launcher icon (Android 13+): single-colour logo silhouette. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="22.72"
+        android:translateY="23.55"
+        android:scaleX="0.5"
+        android:scaleY="0.5">
+        <path
+            android:pathData="M25.9,26.7A9.9,9.9 0,1 0,45.7,26.7A9.9,9.9 0,1 0,25.9,26.7Z"
+            android:fillColor="#FFFFD54F" />
+        <group
+            android:rotation="-21"
+            android:pivotX="56"
+            android:pivotY="37.7">
+            <path
+                android:pathData="M28,31.2H84A4,4 0,0 1,88,35.2V40.2A4,4 0,0 1,84,44.2H28A4,4 0,0 1,24,40.2V35.2A4,4 0,0 1,28,31.2Z"
+                android:fillColor="#FF4CB87A" />
+        </group>
+        <group
+            android:rotation="-16"
+            android:pivotX="63"
+            android:pivotY="44.2">
+            <path
+                android:pathData="M35,38H91A4,4 0,0 1,95,42V46.5A4,4 0,0 1,91,50.5H35A4,4 0,0 1,31,46.5V42A4,4 0,0 1,35,38Z"
+                android:fillColor="#FFFFCB3D" />
+        </group>
+        <group
+            android:rotation="-8.5"
+            android:pivotX="67"
+            android:pivotY="49.2">
+            <path
+                android:pathData="M39,43.5H95A4,4 0,0 1,99,47.5V51A4,4 0,0 1,95,55H39A4,4 0,0 1,35,51V47.5A4,4 0,0 1,39,43.5Z"
+                android:fillColor="#FFFF8552" />
+        </group>
+        <path
+            android:pathData="M29.6,47H91A11,11 0,0 1,102,58V94A11,11 0,0 1,91,105H29.6A11,11 0,0 1,18.6,94V58A11,11 0,0 1,29.6,47ZM80.7,76.35A4.9,4.9 0,1 0,90.5,76.35A4.9,4.9 0,1 0,80.7,76.35Z"
+            android:fillColor="#FF000000"
+            android:fillType="evenOdd" />
+    </group>
+</vector>

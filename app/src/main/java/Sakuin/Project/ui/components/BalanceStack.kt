@@ -1,6 +1,8 @@
 package Sakuin.Project.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -233,6 +235,8 @@ private fun CardContent(
                 color = card.content,
                 maxLines = 1,
                 softWrap = false,
+                // Large balances (or a large system font) shrink to fit instead of being cut off.
+                autoSize = TextAutoSize.StepBased(minFontSize = 18.sp, maxFontSize = SakuinTheme.typography.displayAmount.fontSize),
             )
         }
         // The page dots stay in the bottom-right corner.

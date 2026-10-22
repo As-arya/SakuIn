@@ -32,6 +32,7 @@ function element(tag, a, defaults, indent) {
   const lines = [`${indent}<path`, `${indent}    android:pathData="${d}"`];
   const fill = color(p.fill);
   if (fill) lines.push(`${indent}    android:fillColor="${fill}"`);
+  if (p['fill-rule'] === 'evenodd') lines.push(`${indent}    android:fillType="evenOdd"`);
   const stroke = color(p.stroke);
   if (stroke) {
     lines.push(`${indent}    android:strokeColor="${stroke}"`);
@@ -119,9 +120,20 @@ const LOGO = `<rect width="120" height="120" rx="30" fill="#1F5BDD"/>
 <rect x="18.6" y="47" width="83.4" height="58" rx="11" fill="#F9FAFC"/>
 <path d="M86 63.5H104A2.5 2.5 0 0 1 106.5 66V86.7A2.5 2.5 0 0 1 104 89.2H86A12.85 12.85 0 0 1 86 63.5Z" fill="#5E91F7"/>
 <circle cx="85.6" cy="76.35" r="4.9" fill="#F9FAFC"/>`;
-vector({ name: 'ic_logo', comment: 'Temporary Sakuin logo (Figma component Logo/App Icon).', width: 120, height: 120, body: LOGO });
 // Android 12 splash icons are 240dp with a 160dp visible circle: scale the logo to fit inside it.
 vector({ name: 'ic_splash_logo', comment: 'Splash screen icon: the logo centered inside the 160dp safe circle.', width: 240, height: 240, viewport: [240, 240], body: LOGO, group: { translateX: '66', translateY: '66', scaleX: '0.9', scaleY: '0.9' } });
+
+// Adaptive launcher icon (108dp canvas, ~72dp visible): the logo art without its blue tile, scaled to
+// about 44dp and centred; the tile colour becomes the background layer.
+const LOGO_ART = LOGO.split('\n').slice(1).join('\n');
+const LAUNCHER_GROUP = { translateX: '22.72', translateY: '23.55', scaleX: '0.5', scaleY: '0.5' };
+vector({ name: 'ic_launcher_foreground', comment: 'Adaptive launcher icon foreground: the Sakuin logo art.', width: 108, height: 108, viewport: [108, 108], body: LOGO_ART, group: LAUNCHER_GROUP });
+vector({ name: 'ic_launcher_background', comment: 'Adaptive launcher icon background: the logo tile colour.', width: 108, height: 108, body: '<rect width="108" height="108" fill="#1F5BDD"/>' });
+// Themed (monochrome) icon: one colour, so the clasp is cut out of the wallet with an even-odd fill.
+const walletWithClasp = rectPath({ x: 18.6, y: 47, width: 83.4, height: 58, rx: 11 }) + ellipsePath(85.6, 76.35, 4.9, 4.9);
+// Coin + three cards, then the wallet body with the clasp hole.
+const LOGO_MONO = LOGO_ART.split('\n').slice(0, 4).join('\n') + `\n<path fill-rule="evenodd" d="${walletWithClasp}" fill="#000000"/>`;
+vector({ name: 'ic_launcher_monochrome', comment: 'Themed launcher icon (Android 13+): single-colour logo silhouette.', width: 108, height: 108, viewport: [108, 108], body: LOGO_MONO, group: LAUNCHER_GROUP });
 
 const WALLET = `<rect x="80" y="70" width="120" height="32" rx="10" transform="rotate(-14 140 86)" fill="#4CB87A"/>
 <rect x="86" y="84" width="120" height="30" rx="10" transform="rotate(-8 146 99)" fill="#FFCB3D"/>
@@ -187,4 +199,4 @@ ${WALLET}
 for (const [k, [h, body]] of Object.entries(ART)) {
   vector({ name: 'ill_' + k, comment: `Onboarding illustration "${k}" (Figma component Illustration/${k}).`, width: 280, height: h, body });
 }
-console.log(`icons: ${Object.keys(ICONS).length}, illustrations: ${Object.keys(ART).length}, logo: 2`);
+console.log(`icons: ${Object.keys(ICONS).length}, illustrations: ${Object.keys(ART).length}, logo: 1, launcher: 3`);

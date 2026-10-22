@@ -1,6 +1,8 @@
 package Sakuin.Project.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +58,13 @@ fun WalletCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(balance, style = SakuinTheme.typography.headlineLarge, color = content, maxLines = 1)
+            Text(
+                balance,
+                style = SakuinTheme.typography.headlineLarge,
+                color = content,
+                maxLines = 1,
+                autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = SakuinTheme.typography.headlineLarge.fontSize),
+            )
         }
     }
 }

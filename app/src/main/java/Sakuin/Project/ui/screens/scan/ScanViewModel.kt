@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import Sakuin.Project.data.local.ReceiptStore
+import Sakuin.Project.data.prefs.SettingsRepository
 import Sakuin.Project.data.local.entity.CategoryEntity
 import Sakuin.Project.data.local.entity.CategoryKind
 import Sakuin.Project.data.local.model.WalletWithBalance
@@ -56,6 +57,7 @@ class ScanViewModel(
     walletRepository: WalletRepository,
     categoryRepository: CategoryRepository,
     private val transactions: TransactionRepository,
+    private val settings: SettingsRepository,
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
     val isOnline: StateFlow<Boolean> = network.isOnline
@@ -188,8 +190,9 @@ class ScanViewModel(
         if (error != null || saving) return
         saving = true
         viewModelScope.launch {
-            val path = photo?.let { store.keep(it) }
-            photo = null
+            // With "Keep receipt photos" off the scan copy is simply dropped (see onCleared).
+            val path = if (settings.keepReceiptPhotos.first()) photo?.let { store.keep(it) } else null
+            if (path != null) photo = null
             // The store name is kept as the note when the item name says something else.
             val note = merchant?.takeUnless { it.equals(title.trim(), ignoreCase = true) }
             transactions.addExpense(amount!!, walletId!!, categoryId!!, title, note, occurredAt, receiptImagePath = path)

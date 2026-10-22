@@ -24,10 +24,15 @@ class GeminiReceiptClientTest {
     @After
     fun tearDown() = server.close()
 
-    private fun client(apiKey: String = "test-key", http: OkHttpClient = OkHttpClient()) = GeminiReceiptClient(
+    private fun client(
+        apiKey: String = "test-key",
+        http: OkHttpClient = OkHttpClient(),
+        models: List<String> = listOf("primary-model"),
+    ) = GeminiReceiptClient(
         apiKey = apiKey,
         httpClient = http,
         baseUrl = server.url("/v1beta").toString().trimEnd('/'),
+        models = models,
         retryDelaysMillis = listOf(0, 0),
     )
 
@@ -49,7 +54,7 @@ class GeminiReceiptClientTest {
         assertEquals(43_000L, receipt.total)
         val request = server.takeRequest()
         assertEquals("POST", request.method)
-        assertEquals("/v1beta/models/${GeminiReceiptClient.DEFAULT_MODEL}:generateContent", request.url.encodedPath)
+        assertEquals("/v1beta/models/primary-model:generateContent", request.url.encodedPath)
         assertEquals("test-key", request.headers["x-goog-api-key"])
         assertTrue("key must not be in the URL", request.url.query == null)
     }
@@ -83,6 +88,32 @@ class GeminiReceiptClientTest {
     }
 
     @Test
+    fun retiredModelFallsBackToTheNextOne() = runTest {
+        server.enqueue(MockResponse(code = 404, body = """{"error": {"status": "NOT_FOUND"}}"""))
+        server.enqueue(MockResponse(body = okAnswer))
+        val receipt = client(models = listOf("old-model", "new-model")).scan(byteArrayOf(1), listOf("Food"), today)
+
+        assertEquals(43_000L, receipt.total)
+        assertEquals("/v1beta/models/old-model:generateContent", server.takeRequest().url.encodedPath)
+        assertEquals("/v1beta/models/new-model:generateContent", server.takeRequest().url.encodedPath)
+    }
+
+    @Test
+    fun serverErrorsFallBackAfterRetries() = runTest {
+        repeat(3) { server.enqueue(MockResponse(code = 503)) }
+        server.enqueue(MockResponse(body = okAnswer))
+        assertEquals(43_000L, client(models = listOf("busy-model", "new-model")).scan(byteArrayOf(1), listOf("Food"), today).total)
+        assertEquals(4, server.requestCount)
+    }
+
+    @Test
+    fun rateLimitsDoNotFallBack() = runTest {
+        server.enqueue(MockResponse(code = 429))
+        assertEquals(ScanError.Busy, scanError(client(models = listOf("a", "b"))))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
     fun slowAnswersTimeOut() = runTest {
         server.enqueue(MockResponse.Builder().body(okAnswer).headersDelay(2, TimeUnit.SECONDS).build())
         val http = OkHttpClient.Builder().readTimeout(200, TimeUnit.MILLISECONDS).build()
@@ -91,7 +122,7 @@ class GeminiReceiptClientTest {
 
     @Test
     fun unreachableServerIsANetworkError() = runTest {
-        val unreachable = GeminiReceiptClient(apiKey = "k", baseUrl = "http://127.0.0.1:1/v1beta", retryDelaysMillis = emptyList())
+        val unreachable = GeminiReceiptClient(apiKey = "k", baseUrl = "http://127.0.0.1:1/v1beta", models = listOf("m"), retryDelaysMillis = emptyList())
         assertEquals(ScanError.Network, scanError(unreachable))
     }
 }

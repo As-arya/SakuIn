@@ -106,6 +106,12 @@ class TransactionsViewModel(
 
     fun clearExtraFilters() = _filter.update { it.copy(walletId = null, categoryId = null) }
 
+    /** Search text, type and the sheet filters all at once (from the "no matches" state). */
+    fun clearAll() {
+        _query.value = ""
+        _filter.value = TransactionFilter()
+    }
+
     fun setQuery(text: String) {
         _query.value = text.take(50)
     }

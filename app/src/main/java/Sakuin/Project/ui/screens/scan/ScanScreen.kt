@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -82,6 +83,7 @@ import Sakuin.Project.data.local.entity.CategoryEntity
 import Sakuin.Project.data.remote.ReceiptItem
 import Sakuin.Project.data.remote.ScanError
 import Sakuin.Project.ui.components.AmountInput
+import Sakuin.Project.ui.components.asHeading
 import Sakuin.Project.ui.components.ButtonStyle
 import Sakuin.Project.ui.components.DateTimePickerDialog
 import Sakuin.Project.ui.components.ReceiptPhotoDialog
@@ -133,6 +135,7 @@ fun ScanScreen(
             it.walletRepository,
             it.categoryRepository,
             it.transactionRepository,
+            it.settingsRepository,
         )
     }
     val online by viewModel.isOnline.collectAsStateWithLifecycle()
@@ -469,6 +472,7 @@ private fun ProblemContent(
             }
             Text(
                 stringResource(title),
+                modifier = Modifier.asHeading(),
                 style = SakuinTheme.typography.headlineLarge,
                 color = colors.textPrimary,
                 textAlign = TextAlign.Center,
@@ -704,7 +708,7 @@ private fun ItemsCard(items: List<ReceiptItem>) {
         }
         if (!expanded && items.size > CollapsedItems) {
             Text(
-                stringResource(R.string.scan_show_all_items, items.size),
+                pluralStringResource(R.plurals.scan_show_all_items, items.size, items.size),
                 modifier = Modifier
                     .clickable(role = Role.Button) { expanded = true }
                     .padding(vertical = SakuinTheme.spacing.xs),

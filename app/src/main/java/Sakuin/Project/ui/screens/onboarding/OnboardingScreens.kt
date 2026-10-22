@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import Sakuin.Project.R
 import Sakuin.Project.data.local.entity.WalletType
 import Sakuin.Project.ui.components.PageDots
+import Sakuin.Project.ui.components.asHeading
 import Sakuin.Project.ui.components.SakuinButton
 import Sakuin.Project.ui.components.SakuinTextField
 import Sakuin.Project.ui.components.ThousandsSeparatorTransformation
@@ -108,6 +109,7 @@ fun OnboardingIntroScreen(onFinish: () -> Unit) {
                 Spacer(Modifier.height(40.dp))
                 Text(
                     stringResource(slide.title),
+                    modifier = Modifier.asHeading(),
                     style = SakuinTheme.typography.headlineLarge,
                     color = SakuinTheme.colors.textPrimary,
                     textAlign = TextAlign.Center,
@@ -240,6 +242,7 @@ fun OnboardingDoneScreen(onGoHome: () -> Unit) {
             Illustration(R.drawable.ill_done, width = 280)
             Text(
                 stringResource(R.string.onboarding_done_title, state.userName),
+                modifier = Modifier.asHeading(),
                 style = SakuinTheme.typography.headlineLarge,
                 color = SakuinTheme.colors.textPrimary,
                 textAlign = TextAlign.Center,
@@ -325,7 +328,7 @@ private fun StepHeader(step: Int, onBack: () -> Unit, total: Int = 2) {
 @Composable
 private fun StepTitle(@StringRes title: Int, @StringRes body: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.sm)) {
-        Text(stringResource(title), style = SakuinTheme.typography.headlineLarge, color = SakuinTheme.colors.textPrimary)
+        Text(stringResource(title), modifier = Modifier.asHeading(), style = SakuinTheme.typography.headlineLarge, color = SakuinTheme.colors.textPrimary)
         Text(stringResource(body), style = SakuinTheme.typography.bodyMedium, color = SakuinTheme.colors.textSecondary)
     }
 }

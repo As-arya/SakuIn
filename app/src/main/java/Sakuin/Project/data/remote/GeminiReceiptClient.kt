@@ -25,6 +25,7 @@ import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
@@ -36,22 +37,36 @@ class GeminiReceiptClient(
     private val apiKey: String,
     private val httpClient: OkHttpClient = defaultHttpClient(),
     private val baseUrl: String = "https://generativelanguage.googleapis.com/v1beta",
-    private val model: String = DEFAULT_MODEL,
+    /** Tried in order: the next one is used when a model is retired (404) or keeps failing on the server. */
+    private val models: List<String> = listOf(DEFAULT_MODEL, FALLBACK_MODEL),
     /** Waits before retrying a server error; one retry per entry. */
     private val retryDelaysMillis: List<Long> = listOf(1_000, 2_000),
 ) {
     suspend fun scan(jpeg: ByteArray, categories: List<String>, today: LocalDate): ReceiptDto {
         if (apiKey.isBlank()) throw ScanException(ScanError.NotConfigured, "GEMINI_API_KEY is empty")
+        val body = buildRequestBody(jpeg, categories, today).toString().toRequestBody(JsonMediaType)
+        models.forEachIndexed { index, model ->
+            try {
+                return scanWith(model, body)
+            } catch (e: ScanException) {
+                val tryNext = e.httpCode == 404 || e.error == ScanError.Server
+                if (!tryNext || index == models.lastIndex) throw e
+            }
+        }
+        error("No models configured")
+    }
+
+    private suspend fun scanWith(model: String, body: RequestBody): ReceiptDto {
         val request = Request.Builder()
             .url("$baseUrl/models/$model:generateContent")
             .header("x-goog-api-key", apiKey)
-            .post(buildRequestBody(jpeg, categories, today).toString().toRequestBody(JsonMediaType))
+            .post(body)
             .build()
         var attempt = 0
         while (true) {
             try {
-                val (code, body) = execute(request)
-                return parseResponse(code, body)
+                val (code, text) = execute(request)
+                return parseResponse(code, text)
             } catch (e: ScanException) {
                 if (e.error != ScanError.Server || attempt >= retryDelaysMillis.size) throw e
                 delay(retryDelaysMillis[attempt++])
@@ -82,8 +97,12 @@ class GeminiReceiptClient(
     }
 
     companion object {
-        /** Current stable Flash model (checked against the Gemini API docs, Oct 2026). */
-        const val DEFAULT_MODEL = "gemini-3.8-flash"
+        /**
+         * Stable (GA) Flash model. Checked Oct 2026: the newer gemini-3.8-flash is listed for the
+         * project's key but its requests hung, while 3.6 answered in a few seconds.
+         */
+        const val DEFAULT_MODEL = "gemini-3.6-flash"
+        const val FALLBACK_MODEL = "gemini-3.8-flash"
 
         private val JsonMediaType = "application/json; charset=utf-8".toMediaType()
 
@@ -114,11 +133,11 @@ internal fun buildPrompt(categories: List<String>, today: LocalDate): String = "
     You read shopping receipts from Indonesia for a money-tracking app. Fill in the JSON fields from the photo.
     - isReceipt: false when the photo is not a receipt, invoice or bill; then leave the other fields null or empty.
     - total: the final amount paid (TOTAL, Grand Total, Jumlah, Total Bayar, Tagihan) in whole rupiah. Receipts use "." or "," between thousands, so "Rp 43.000" is 43000. Never use the cash handed over (Tunai, Cash, Bayar) or the change (Kembali, Kembalian).
-    - merchant: the store or restaurant name as printed.
+    - merchant: the store or restaurant name, written the way people write it (title case, e.g. "Warung Bu Sri", not "WARUNG BU SRI").
     - date and time: when the purchase happened, as yyyy-MM-dd and HH:mm (24-hour); null when not printed. Today is $today and receipts are never dated in the future.
     - category: the best fit among: ${categories.joinToString(", ")}.
     - suggestedName: a short name for this expense, at most 40 characters, in the receipt's language: the item itself when there is one main item, otherwise the merchant name.
-    - items: every purchased line with its name, quantity and line total in rupiah. Include printed tax or service lines. Skip payment and change lines.
+    - items: every purchased line with its name (title case), quantity and price. price is the amount printed for that line, already including the quantity; do not multiply it. The line prices normally add up to the subtotal. Include printed tax or service lines. Skip subtotal, payment and change lines.
 """.trimIndent()
 
 /** The `generateContent` request: prompt + photo, answered as JSON that matches [ReceiptDto]. */
@@ -208,7 +227,7 @@ private data class ErrorBody(val code: Int? = null, val message: String? = null,
 
 /** Maps an HTTP status and body to a [ReceiptDto], or throws a [ScanException] saying what went wrong. */
 internal fun parseResponse(code: Int, body: String): ReceiptDto {
-    if (code !in 200..299) throw ScanException(errorFor(code, body), "HTTP $code: ${errorMessage(body)}")
+    if (code !in 200..299) throw ScanException(errorFor(code, body), "HTTP $code: ${errorMessage(body)}", httpCode = code)
     val response = try {
         ResponseJson.decodeFromString<GenerateContentResponse>(body)
     } catch (e: SerializationException) {

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import Sakuin.Project.data.local.ReceiptStore
+import Sakuin.Project.data.prefs.SettingsRepository
 import Sakuin.Project.data.local.entity.CategoryEntity
 import Sakuin.Project.data.local.entity.CategoryKind
 import Sakuin.Project.data.local.entity.TransactionEntity
@@ -44,6 +45,7 @@ class AddTransactionViewModel(
     categoryRepository: CategoryRepository,
     private val transactions: TransactionRepository,
     private val receipts: ReceiptStore,
+    settings: SettingsRepository,
     clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<AddTransactionRoute>()
@@ -57,6 +59,9 @@ class AddTransactionViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val expenseCategories: StateFlow<List<CategoryEntity>> = categoryRepository.observeCategories(CategoryKind.EXPENSE)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    /** Whether the app bar offers the receipt scan (it can be switched off in Settings). */
+    val scanEnabled: StateFlow<Boolean> = settings.receiptScanEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
     val incomeCategories: StateFlow<List<CategoryEntity>> = categoryRepository.observeCategories(CategoryKind.INCOME)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

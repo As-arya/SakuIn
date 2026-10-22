@@ -21,6 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import Sakuin.Project.R
 import Sakuin.Project.ui.components.ButtonStyle
+import Sakuin.Project.ui.components.asHeading
+import Sakuin.Project.ui.components.EmptyState
 import Sakuin.Project.ui.components.SakuinButton
 import Sakuin.Project.ui.components.SakuinTopBar
 import Sakuin.Project.ui.components.TransactionRow
@@ -90,21 +92,19 @@ fun WalletDetailScreen(
             item {
                 Text(
                     stringResource(R.string.wallet_history),
-                    modifier = Modifier.padding(top = SakuinTheme.spacing.sm),
+                    modifier = Modifier
+                        .padding(top = SakuinTheme.spacing.sm)
+                        .asHeading(),
                     style = SakuinTheme.typography.titleSmall,
                     color = colors.textPrimary,
                 )
             }
             if (state.history.isEmpty()) {
                 item {
-                    Text(
-                        stringResource(R.string.wallet_history_empty),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = SakuinTheme.spacing.xl),
-                        style = SakuinTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                        textAlign = TextAlign.Center,
+                    EmptyState(
+                        icon = R.drawable.ic_receipt,
+                        title = stringResource(R.string.wallet_history_empty_title),
+                        body = stringResource(R.string.wallet_history_empty_body),
                     )
                 }
             }

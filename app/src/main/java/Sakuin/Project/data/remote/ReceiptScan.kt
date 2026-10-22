@@ -25,9 +25,13 @@ enum class ScanError {
     Unreadable,
 }
 
-/** [detail] is for logs only; the screen shows a message for [error]. */
-class ScanException(val error: ScanError, detail: String? = null, cause: Throwable? = null) :
-    Exception("$error${detail?.let { ": $it" }.orEmpty()}", cause)
+/** [detail] is for logs only; the screen shows a message for [error]. [httpCode] is set for API errors. */
+class ScanException(
+    val error: ScanError,
+    detail: String? = null,
+    cause: Throwable? = null,
+    val httpCode: Int? = null,
+) : Exception("$error${detail?.let { ": $it" }.orEmpty()}", cause)
 
 /** One line on the receipt; [price] is the line total in rupiah. */
 @Serializable

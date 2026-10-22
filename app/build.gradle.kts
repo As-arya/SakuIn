@@ -14,6 +14,12 @@ val localProperties = Properties().apply {
     if (file.exists()) file.inputStream().use(::load)
 }
 
+// Release signing key, also git-ignored (keystore.properties + sakuin-release.jks in the project root).
+val keystoreFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystoreFile.exists()) keystoreFile.inputStream().use(::load)
+}
+
 android {
     namespace = "Sakuin.Project"
     // Compose BOM 2026.09 / Navigation 2.10 / Lifecycle 2.11 require compiling against API 37.
@@ -30,11 +36,20 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            "String",
-            "GEMINI_API_KEY",
-            "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"",
-        )
+        // Accept the key with or without surrounding quotes (GEMINI_API_KEY="..." is a common way to write it).
+        val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY", "").trim().removeSurrounding("\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+    }
+
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -42,6 +57,8 @@ android {
             optimization {
                 enable = false
             }
+            // Without keystore.properties the release APK is built unsigned (it then cannot be installed).
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
     compileOptions {
@@ -79,6 +96,7 @@ dependencies {
     ksp(libs.androidx.room3.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.okhttp)
+    implementation(libs.androidx.exifinterface)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
