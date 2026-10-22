@@ -114,4 +114,7 @@ interface TransactionDao {
         """
     )
     suspend fun suggestTitles(categoryId: Long, prefix: String, limit: Int): List<String>
+
+    @Query("SELECT receiptImagePath FROM transactions WHERE receiptImagePath IS NOT NULL")
+    suspend fun receiptImagePaths(): List<String>
 }

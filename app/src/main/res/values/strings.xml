@@ -8,11 +8,193 @@
     <string name="nav_wallets">Wallets</string>
     <string name="nav_add_transaction">Add transaction</string>
 
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="action_next">Next</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_get_started">Get Started</string>
+    <string name="action_go_home">Go to Home</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_done">Done</string>
+    <string name="action_save_changes">Save Changes</string>
+
+    <!-- Fields -->
+    <string name="field_amount">Amount</string>
+    <string name="field_date">Date</string>
+    <string name="field_note_optional">Note (optional)</string>
+    <string name="field_wallet_name">Wallet name</string>
+    <string name="field_type">Type</string>
+    <string name="field_starting_balance">Starting balance</string>
+    <string name="field_your_name">Your name</string>
+    <string name="field_name">Name</string>
+    <string name="field_icon">Icon</string>
+    <string name="field_category">Category</string>
+    <string name="field_source">Source</string>
+    <string name="field_item_name">Item name</string>
+    <string name="field_item_name_placeholder">e.g. Nasi Goreng, Angkot</string>
+    <string name="field_pay_from">Pay from</string>
+    <string name="field_to_wallet">To wallet</string>
+
+    <!-- Errors -->
+    <string name="error_name_required">Please enter a name</string>
+    <string name="error_amount_required">Enter an amount</string>
+    <string name="error_two_wallets">Choose two different wallets</string>
+    <string name="error_category_required">Choose a category</string>
+    <string name="error_item_name_required">What was it for?</string>
+
     <!-- Screen titles -->
     <string name="title_transactions">Transactions</string>
     <string name="title_stats">Stats</string>
     <string name="title_wallets">Wallets</string>
     <string name="title_add_transaction">Add Transaction</string>
+    <string name="title_edit_transaction">Edit Transaction</string>
+    <string name="title_settings">Settings</string>
+    <string name="title_categories">Categories</string>
     <string name="greeting">Hello, %1$s</string>
-    <string name="placeholder_coming_soon">Coming soon</string>
+    <string name="greeting_fallback">there</string>
+
+    <!-- Home -->
+    <string name="balance_total">Total Balance</string>
+    <string name="balance_next_card">Show next balance</string>
+    <string name="balance_hide">Hide balances</string>
+    <string name="balance_show">Show balances</string>
+    <string name="home_scan">Scan</string>
+    <string name="home_recent">Recent transactions</string>
+    <string name="home_see_all">See all</string>
+    <string name="home_recent_empty">No transactions yet. Tap + to add one.</string>
+    <string name="title_scan">Scan Receipt</string>
+
+    <!-- Receipt scan -->
+    <string name="title_review_receipt">Review Receipt</string>
+    <string name="scan_hint">Keep the total clearly visible</string>
+    <string name="scan_take_photo">Take photo</string>
+    <string name="scan_pick_photo">Choose from gallery</string>
+    <string name="scan_add_manually">Add Manually</string>
+    <string name="scan_try_again">Try Again</string>
+    <string name="scan_retake">Retake</string>
+    <string name="scan_save">Save</string>
+    <string name="scan_no_camera">No camera app found. Choose a photo from the gallery instead.</string>
+    <string name="scan_reading_title">Reading receipt…</string>
+    <string name="scan_reading_body">Getting the total, date, store and category.</string>
+    <string name="scan_total">Total</string>
+    <string name="scan_receipt">Receipt</string>
+    <string name="scan_change_date">Change date</string>
+    <string name="scan_ai_suggested">Suggested by AI</string>
+    <string name="scan_show_all_items">Show all %1$d items</string>
+    <string name="receipt_photo">Receipt photo</string>
+    <string name="scan_offline_title">You’re offline</string>
+    <string name="scan_offline_body">Receipt scan needs internet. You can still add it manually.</string>
+    <string name="scan_error_not_receipt_title">No receipt found</string>
+    <string name="scan_error_not_receipt_body">Fit the whole receipt in the photo and keep the total clearly visible.</string>
+    <string name="scan_error_unreadable_title">Couldn’t read the receipt</string>
+    <string name="scan_error_unreadable_body">The photo may be blurry or too dark. Try again in better light.</string>
+    <string name="scan_error_image_title">Couldn’t open the photo</string>
+    <string name="scan_error_image_body">Take a new photo or choose another one.</string>
+    <string name="scan_error_network_title">Connection problem</string>
+    <string name="scan_error_network_body">Check your internet connection and try again.</string>
+    <string name="scan_error_timeout_title">This is taking too long</string>
+    <string name="scan_error_timeout_body">The scan timed out. Check your connection and try again.</string>
+    <string name="scan_error_busy_title">Scan limit reached</string>
+    <string name="scan_error_busy_body">Too many scans for now. Wait a bit and try again, or add it manually.</string>
+    <string name="scan_error_server_title">Scan is unavailable</string>
+    <string name="scan_error_server_body">The scan service is having trouble. Try again in a moment.</string>
+    <string name="scan_error_setup_title">Scan isn’t set up</string>
+    <string name="scan_error_setup_body">Receipt scan needs a valid Gemini API key. Add GEMINI_API_KEY to local.properties and rebuild the app.</string>
+
+    <!-- Stats -->
+    <string name="stats_all_wallets">All wallets</string>
+    <string name="stats_week">Week</string>
+    <string name="stats_month">Month</string>
+    <string name="stats_year">Year</string>
+    <string name="stats_net">Net</string>
+    <string name="stats_income_vs_expense">Income vs Expense</string>
+    <string name="stats_expense_by_category">Expense by category</string>
+    <string name="stats_total">Total</string>
+    <string name="stats_no_expenses">No expenses in this period.</string>
+    <string name="stats_uncategorized">Uncategorized</string>
+    <string name="stats_others">Others</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_track_title">Track every rupiah</string>
+    <string name="onboarding_track_body">Log income and expenses in a few taps.</string>
+    <string name="onboarding_offline_title">Works fully offline</string>
+    <string name="onboarding_offline_body">Your data stays on your phone. No account needed.</string>
+    <string name="onboarding_scan_title">Scan your receipts</string>
+    <string name="onboarding_scan_body">Snap a receipt and AI fills in the details.</string>
+    <string name="onboarding_step">%1$d/%2$d</string>
+    <string name="onboarding_name_title">What should we call you?</string>
+    <string name="onboarding_name_body">We’ll use your name to greet you.</string>
+    <string name="onboarding_wallet_title">Add your first wallet</string>
+    <string name="onboarding_wallet_body">Pick a type. You can add more later.</string>
+    <string name="onboarding_default_wallet_name">My Wallet</string>
+    <string name="onboarding_done_title">You’re all set, %1$s!</string>
+    <string name="onboarding_done_body">Your first wallet is ready.</string>
+
+    <!-- Wallets -->
+    <string name="wallet_type_cash">Cash</string>
+    <string name="wallet_type_card">Card</string>
+    <string name="wallet_type_ewallet">E-wallet</string>
+    <string name="wallets_total_balance">Total balance</string>
+    <string name="wallets_empty">No wallets yet. Add one to start tracking.</string>
+    <string name="wallet_add">Add wallet</string>
+    <string name="wallet_add_title">Add Wallet</string>
+    <string name="wallet_edit_title">Edit Wallet</string>
+    <string name="wallet_save">Save Wallet</string>
+    <string name="wallet_archive">Archive wallet</string>
+    <string name="wallet_balance">Balance</string>
+    <string name="wallet_history">History</string>
+    <string name="wallet_history_empty">No transactions yet</string>
+    <string name="wallet_picker_title">Choose wallet</string>
+    <string name="wallet_picker_add">Add new wallet</string>
+
+    <!-- Add transaction -->
+    <string name="tab_expense">Expense</string>
+    <string name="tab_income">Income</string>
+    <string name="tab_transfer">Transfer</string>
+    <string name="transaction_transfer">Transfer</string>
+    <string name="need_wallet">Add a wallet first to record money in or out.</string>
+    <string name="expense_save">Save Expense</string>
+    <string name="income_save">Save Income</string>
+    <string name="delete_transaction_title">Delete this transaction?</string>
+    <string name="delete_transaction_body">The wallet balance will be updated.</string>
+
+    <!-- Transactions list -->
+    <string name="transactions_search">Search transactions</string>
+    <string name="transactions_empty">No transactions this month.</string>
+    <string name="transaction_deleted">Transaction deleted</string>
+    <string name="filter_all">All</string>
+    <string name="filters_title">Filters</string>
+    <string name="filters_wallet">Wallet</string>
+    <string name="filters_expense_category">Expense category</string>
+    <string name="filters_income_source">Income source</string>
+    <string name="filters_clear">Clear</string>
+    <string name="month_previous">Previous month</string>
+    <string name="month_next">Next month</string>
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+
+    <!-- Settings & categories -->
+    <string name="settings_group_data">Data</string>
+    <string name="settings_offline_note">All data is stored offline on this device.\nSakuin %1$s</string>
+    <string name="category_add">Add category</string>
+    <string name="category_new">New category</string>
+    <string name="category_edit">Edit category</string>
+    <string name="category_save">Save Category</string>
+    <string name="category_archive">Archive category</string>
+    <string name="transfer_from">From</string>
+    <string name="transfer_to">To</string>
+    <string name="transfer_swap">Swap wallets</string>
+    <string name="transfer_choose_wallet">Choose wallet</string>
+    <string name="transfer_info">Transfers are not counted as income or expense.</string>
+    <string name="transfer_negative_warning">%1$s will go below zero.</string>
+    <string name="transfer_need_two_wallets">Add at least two wallets to make a transfer.</string>
+    <string name="transfer_save">Save Transfer</string>
 </resources>

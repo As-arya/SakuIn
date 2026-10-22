@@ -41,9 +41,9 @@ Sakuin membantu mahasiswa/pekerja muda mencatat uang masuk & keluar di beberapa 
 
 **F5 — Scan foto resi (online)**
 - Ambil foto (kamera) atau pilih dari galeri.
-- Jika offline: tombol scan nonaktif + pesan "Butuh koneksi internet"; pencatatan manual tetap jalan.
+- Jika offline: layar scan menampilkan "You're offline" + pilihan Add Manually / Try Again (otomatis kembali saat koneksi pulih); pencatatan manual tetap jalan.
 - Foto dikompres lalu dikirim ke Gemini; hasil JSON: `total`, `merchant`, `date`, `category` (dipetakan ke kategori yang ada), `items[]`, `suggestedName`.
-- Hasil membuka form Uang Keluar yang sudah terisi → user meninjau/mengoreksi → simpan. Foto resi disimpan lokal & tautkan ke transaksi (opsional dilihat lagi).
+- Hasil tampil di layar Review Receipt (total, item, kategori saran AI, nama item, dompet, tanggal — semua bisa dikoreksi) → simpan sebagai Uang Keluar. Foto resi disimpan lokal & tautkan ke transaksi (opsional dilihat lagi).
 - Error handling: timeout, resi tidak terbaca, kuota habis → pesan jelas + opsi isi manual.
 
 **F6 — Chart**

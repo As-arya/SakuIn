@@ -26,9 +26,9 @@ util (RupiahFormatter, DateUtils, NetworkMonitor, ImageCompressor)
 - Compose BOM + Material 3, `activity-compose`, `lifecycle-viewmodel-compose`/`runtime-compose`
 - Plugin `org.jetbrains.kotlin.plugin.compose` (versi = versi Kotlin bawaan AGP) & `kotlin.plugin.serialization`
 - `navigation-compose` (type-safe routes) · Room (`room-runtime`, `room-ktx`, `room-compiler` via KSP) · DataStore Preferences
-- Vico (`compose-m3`) untuk bar chart; donut chart custom dengan `Canvas`
+- Chart: bar chart & donut custom dengan Compose (`Box`/`Canvas`), tanpa Vico (lihat Fase 6)
 - OkHttp + kotlinx-serialization-json untuk REST Gemini (`generateContent` dengan `inline_data` image + `responseSchema` JSON)
-- Coil (thumbnail resi), `ActivityResultContracts.TakePicture` + `PickVisualMedia` (tanpa CameraX untuk v1)
+- `ActivityResultContracts.TakePicture` + `PickVisualMedia` (tanpa CameraX untuk v1); thumbnail resi tanpa Coil (lihat Fase 7)
 - Test: JUnit, kotlinx-coroutines-test, Turbine, Room in-memory (androidTest), Compose UI test
 
 ### Fase 0 — Dokumen
@@ -64,22 +64,48 @@ Belum dikerjakan di fase ini: KSP + Room (dipindah ke Fase 3 — Room terbaru ad
 - Layer `domain/` belum dibuat: ViewModel memakai repository langsung, ditambah bila logika bisnis bertambah.
 - Test: `app/src/test` (TimeRange, bucketByMonth, BalanceSummary) dan `app/src/androidTest/.../DataLayerTest.kt` (saldo + transfer, arsip, total & kategori, bulanan, filter/pencarian, saran nama, hapus/undo, validasi). Jalankan: `gradlew testDebugUnitTest connectedDebugAndroidTest`.
 
-### Fase 4 — Dompet & Transfer
+### Fase 4 — Dompet & Transfer ✅
+**Status:** selesai dan dicoba di emulator dari data kosong: onboarding → tambah dompet → detail → transfer (saldo & riwayat ter-update), light & dark.
+- Splash: `core-splashscreen` 1.0.1 + `Theme.Sakuin.Starting`, ditahan sampai status onboarding terbaca (`MainViewModel`).
+- Onboarding 00b–00g, Wallets (total + bar komposisi), Add/Edit Wallet (warna mengikuti jenis, tombol Archive), Wallet detail (kartu saldo, tombol Transfer, riwayat), Add Transaction dengan tab Expense/Income/Transfer — **baru tab Transfer yang berfungsi** (sheet pilih dompet, tukar dompet, tanggal+jam, catatan, peringatan saldo minus).
+- Komponen bersama di `ui/components`: Button, TextField/PickerField, Chip, SegmentedControl, TopBar, AmountInput (pemisah ribuan), WalletCard/WalletIconBox, WalletPickerSheet, DateTimeField, TransactionRow, PageDots.
+- Ikon, logo, dan ilustrasi dibuat dari sumber SVG Figma dengan `node tools/svg-to-vector-drawable.js app/src/main/res/drawable`.
+- Setelah transfer tersimpan, app kembali ke layar asal (bukan selalu ke tab Wallets seperti di prototype Figma).
 - Layar daftar dompet (total + per jenis), form tambah/edit, detail dompet (riwayat), arsip.
 - Layar Transfer (dari/ke dompet, validasi dompet berbeda, nominal > 0).
 - Onboarding (layar 00a–00g di Figma): splash → 3 slide intro (`HorizontalPager` + indikator titik, Skip) → nama (simpan ke DataStore) → dompet pertama (tile jenis, nama, saldo awal) → "You're all set" → Home. Start destination ditentukan dari flag `onboardingDone`.
 - Ilustrasi onboarding diekspor dari Figma sebagai SVG lalu dikonversi ke VectorDrawable (`res/drawable/ill_*.xml`).
 
-### Fase 5 — Uang Keluar, Uang Masuk, Daftar Transaksi
+### Fase 5 — Uang Keluar, Uang Masuk, Daftar Transaksi ✅
+**Status:** selesai; 13 unit test JVM + 10 instrumented test lulus, dicoba di emulator (tambah expense/income, saran nama, cari, filter, swipe-hapus + Undo, edit, kelola kategori).
+- `AddTransactionScreen` + `AddTransactionViewModel`: tab Expense/Income/Transfer berbagi jumlah, tanggal, catatan. Expense: kategori (chip), nama kebutuhan + saran dari riwayat (debounce 200 ms), "Pay from" (sheet), peringatan saldo minus. Income: sumber (chip), dompet tujuan (chip). Default kategori/dompet pertama sudah terpilih.
+- Mode edit lewat `AddTransactionRoute(transactionId)`: tab terkunci sesuai tipe, tombol hapus dengan dialog konfirmasi. Dibuka dari daftar Transactions dan riwayat dompet.
+- `TransactionsScreen`: per bulan (bulan depan dikunci), chip tipe, pencarian (debounce 250 ms), sheet filter dompet/kategori, grup per hari dengan net harian, swipe kiri untuk hapus + snackbar Undo (10 detik).
+- `SettingsScreen` (Data: Categories, Wallets) dan `CategoriesScreen` (tab Expense/Income, tambah/edit nama + ikon, arsip). Opsi Appearance & Receipt scan ditambahkan bersama fiturnya.
+- Catatan teknis: key baris daftar memakai `id-updatedAt` dan `restoreTransaction` menyegarkan `updatedAt`, karena state swipe disimpan per key — tanpa itu baris yang di-Undo kembali dalam posisi "terhapus".
 - Satu `AddEditTransactionScreen` dengan tab Keluar/Masuk (dan mode edit), keypad/`AmountInput` berformat Rupiah, bottom sheet kategori/sumber, pemilih dompet, date-time picker M3, autocomplete nama kebutuhan.
 - Daftar transaksi: grouping tanggal, filter & pencarian, swipe/hapus + undo.
 - Pengaturan: kelola kategori & sumber.
 
-### Fase 6 — Beranda & Chart
+### Fase 6 — Beranda & Chart ✅
+**Status:** selesai; 14 unit test JVM lulus (termasuk `formatRupiahCompact`), dicoba di emulator light & dark.
+- `BalanceStack` (`ui/components`): 4 kartu dengan bentuk gelombang dari Figma (`GenericShape`, sudut tetap bulat di lebar layar berapa pun). Swipe ke kiri/kanan atau tap → kartu depan "terlempar" lalu pindah ke belakang; posisi naik/turun dianimasikan. Tombol mata menyembunyikan saldo (Home: kartu + ringkasan). TalkBack: kartu belakang diabaikan, ada aksi "Show next balance".
+- Home: sapaan, stack, Income/Expense bulan ini, quick action Expense/Income/Transfer/Scan, 5 transaksi terakhir + "See all".
+- Stats: filter dompet (dropdown), periode Week/Month/Year dengan panah sebelum/sesudah (periode depan dikunci), ringkasan Income/Expense/Net format ringkas ("Rp 1,87jt"), bar chart 6 bulan sampai bulan terpilih (bulan aktif tebal, lainnya transparan), donut pengeluaran per kategori (maks. 5 irisan + "Others") dengan legend persentase.
+- **Perubahan dari rencana:** chart dibuat dengan Compose biasa (`Box` untuk batang, `Canvas.drawArc` untuk donut) tanpa Vico — lebih sedikit dependensi dan sama persis dengan desain Figma.
 - Home: sapaan "Hello, {name}", `BalanceStack` (tumpukan kartu Total → Cash → Card → E-wallet; swipe horizontal memutar kartu dengan animasi, dibuat dengan `Modifier.pointerInput` + `animateFloatAsState`/`Animatable`), ringkasan bulan ini (Income/Expense), quick action Expense/Income/Transfer/Scan, transaksi terakhir.
-- Statistik: Vico bar chart masuk vs keluar 6 bulan, donut kategori (Canvas), filter periode & dompet, legend + persentase.
+- Statistik: bar chart masuk vs keluar 6 bulan, donut kategori (Canvas), filter periode & dompet, legend + persentase.
 
-### Fase 7 — Scan Resi (Gemini)
+### Fase 7 — Scan Resi (Gemini) ✅
+**Status:** selesai; 36 unit test JVM lulus (22 baru: pemetaan hasil scan, parsing respons/error Gemini, request body, client HTTP dengan MockWebServer, ukuran gambar). Dicoba di emulator light & dark: galeri dan kamera → kompres → reading → review → simpan, offline, error, foto resi di form edit. Panggilan ke Gemini asli **belum** dicoba karena `GEMINI_API_KEY` di `local.properties` masih kosong; UI review diuji memakai server tiruan lokal (perubahan sementara sudah dikembalikan).
+- Model `gemini-3.8-flash` (Flash stabil terbaru, dicek lewat Context7, Okt 2026) lewat REST `generateContent`: foto sebagai `inlineData`, `responseSchema` JSON dengan `enum` nama kategori aktif, `thinkingLevel: LOW` agar cepat. Key dikirim di header `x-goog-api-key`, tidak pernah di URL. OkHttp `5.4.0`; timeout total 60 detik; error 5xx dicoba ulang 2× (1 dtk, 2 dtk), 429 tidak.
+- `data/remote`: `GeminiReceiptClient`, `ReceiptDto` → `ReceiptDraft` (`toDraft`: kategori dicocokkan per nama, fallback "Others"; total kosong → jumlah item; tanggal di masa depan → sekarang; tanggal hari ini tanpa jam → sekarang). `ScanError` membedakan NotConfigured, Image, Network, Timeout, Busy, Server, NotReceipt, Unreadable — masing-masing punya pesan sendiri.
+- `data/local/ReceiptStore`: foto dari kamera (`TakePicture` + FileProvider) atau galeri (`PickVisualMedia`) diputar sesuai EXIF, diperkecil ke sisi panjang maks. 1600 px, JPEG 80 di `cache/scan`; saat disimpan disalin ke `files/receipts/` dan path relatif disimpan di `receiptImagePath`. Saat app start, salinan scan lama dan foto yang tidak lagi dipakai transaksi (mis. sudah dihapus) dibersihkan.
+- `util/NetworkMonitor`: callback default network → `StateFlow<Boolean>`; layar scan langsung pindah ke/dari layar offline.
+- `ui/screens/scan`: Capture (gelap seperti kamera, ikon status bar putih), Reading (garis scan beranimasi, Cancel), Review (thumbnail → foto layar penuh, ubah tanggal, Total bisa diedit, daftar item, chip kategori dengan tanda AI, nama item, Pay from), Problem (offline/error: Add Manually + Try Again). Back dari Reading/Review/Error kembali ke Capture.
+- Pintu masuk: quick action Home dan ikon scan di app bar Add Transaction (tab Expense). Dari form: "Add Manually" kembali ke form yang sama, Save menutup scan dan form.
+- Form edit expense menampilkan baris "Receipt photo" bila transaksinya dari scan. Nama toko disimpan sebagai catatan bila berbeda dari nama item.
+- **Perubahan dari rencana:** hasil scan ditinjau di layar Review sendiri (sesuai Figma), bukan langsung di form Uang Keluar; offline ditampilkan sebagai layar di alur scan (bukan tombol nonaktif) agar ada pilihan Add Manually; thumbnail tanpa Coil (decode `BitmapFactory` dengan subsampling); prompt dalam bahasa Inggris dengan kata kunci resi Indonesia.
 - `NetworkMonitor` (ConnectivityManager callback → `StateFlow<Boolean>`).
 - Ambil/pilih foto → `ImageCompressor` (maks sisi 1600px, JPEG 80) → `GeminiReceiptClient.scan()` dengan prompt Bahasa Indonesia + daftar kategori yang ada + `responseSchema` → parse `ReceiptDto` → map ke kategori (fallback "Others").
 - Navigasi ke form Uang Keluar terisi; simpan salinan foto di `filesDir/receipts`.
@@ -93,7 +119,7 @@ Belum dikerjakan di fase ini: KSP + Room (dipindah ke Fase 3 — Room terbaru ad
 ### Verifikasi
 - `./gradlew assembleDebug` sukses; `./gradlew testDebugUnitTest` (saldo, agregasi, parser JSON resi, ViewModel dengan Turbine).
 - `./gradlew connectedDebugAndroidTest` di emulator (Room DAO in-memory, Compose UI test alur tambah pengeluaran) — jika emulator/perangkat tersedia.
-- Uji manual di emulator: buat 2 dompet → transfer → catat keluar/masuk → cek saldo & total → chart berubah → aktifkan mode pesawat dan ulangi pencatatan (harus jalan; tombol scan nonaktif) → online, scan foto resi contoh → hasil terisi & bisa dikoreksi.
+- Uji manual di emulator: buat 2 dompet → transfer → catat keluar/masuk → cek saldo & total → chart berubah → aktifkan mode pesawat dan ulangi pencatatan (harus jalan; scan menampilkan layar offline) → online, scan foto resi contoh → hasil terisi & bisa dikoreksi.
 - Cek `git status`/`git log` di akhir: tidak ada push; `local.properties` (API key) tidak ter-track.
 
 ### File kritis

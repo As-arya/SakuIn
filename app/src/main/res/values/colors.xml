@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- bg/app token (light) -->
+    <!-- bg/app and bg/surface tokens (light) -->
     <color name="sakuin_background">#FFF5F6F8</color>
+    <color name="sakuin_surface">#FFFFFFFF</color>
 </resources>

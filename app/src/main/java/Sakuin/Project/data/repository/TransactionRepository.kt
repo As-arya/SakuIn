@@ -115,8 +115,9 @@ class TransactionRepository(
         return transaction
     }
 
+    /** Re-inserts a deleted transaction with its original id; [TransactionEntity.updatedAt] is refreshed. */
     suspend fun restoreTransaction(transaction: TransactionEntity) {
-        transactionDao.insert(transaction)
+        transactionDao.insert(transaction.copy(updatedAt = clock()))
     }
 
     fun observeRecent(limit: Int = 5): Flow<List<TransactionWithDetails>> = transactionDao.observeRecent(limit)
@@ -154,6 +155,8 @@ class TransactionRepository(
 
     suspend fun suggestTitles(categoryId: Long, prefix: String, limit: Int = 5): List<String> =
         transactionDao.suggestTitles(categoryId, prefix.trim(), limit)
+
+    suspend fun receiptImagePaths(): List<String> = transactionDao.receiptImagePaths()
 
     private suspend fun insert(
         type: TransactionType,

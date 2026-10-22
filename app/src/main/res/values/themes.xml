@@ -3,4 +3,11 @@
     <style name="Theme.Sakuin" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/sakuin_background</item>
     </style>
+
+    <!-- Launch theme (Figma 00a splash): logo on the surface color, then Theme.Sakuin. -->
+    <style name="Theme.Sakuin.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/sakuin_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Sakuin</item>
+    </style>
 </resources>
