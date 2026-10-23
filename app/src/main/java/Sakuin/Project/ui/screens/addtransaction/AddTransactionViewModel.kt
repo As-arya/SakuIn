@@ -84,6 +84,9 @@ class AddTransactionViewModel(
         private set
     var toWalletId by mutableStateOf<Long?>(null)
         private set
+    /** Transfer admin fee; empty means none. */
+    var feeDigits by mutableStateOf("")
+        private set
 
     var error by mutableStateOf<FormError?>(null)
         private set
@@ -131,6 +134,7 @@ class AddTransactionViewModel(
             TransactionType.TRANSFER -> {
                 fromWalletId = t.walletId
                 toWalletId = t.toWalletId
+                feeDigits = if (t.fee > 0) t.fee.toString() else ""
             }
         }
     }
@@ -191,15 +195,22 @@ class AddTransactionViewModel(
         error = null
     }
 
+    fun onFeeChange(digits: String) {
+        feeDigits = digits
+    }
+
+    private val fee: Long
+        get() = if (tab == TransactionType.TRANSFER) parseRupiahInput(feeDigits) ?: 0 else 0
+
     /** Balance the selected wallet ends up with, counting an edited transaction's old amount back in. */
     fun balanceAfter(wallet: WalletWithBalance, amount: Long): Long {
         val original = editing?.takeIf { it.walletId == wallet.wallet.id }
         val restored = when (original?.type) {
-            TransactionType.EXPENSE, TransactionType.TRANSFER -> original.amount
+            TransactionType.EXPENSE, TransactionType.TRANSFER -> original.amount + original.fee
             TransactionType.INCOME -> -original.amount
             null -> 0
         }
-        val change = if (tab == TransactionType.INCOME) amount else -amount
+        val change = if (tab == TransactionType.INCOME) amount else -(amount + fee)
         return wallet.balance + restored + change
     }
 
@@ -227,7 +238,7 @@ class AddTransactionViewModel(
         when (tab) {
             TransactionType.EXPENSE -> transactions.addExpense(amount, walletId!!, expenseCategoryId!!, title, note, occurredAt)
             TransactionType.INCOME -> transactions.addIncome(amount, walletId!!, incomeCategoryId!!, note, occurredAt)
-            TransactionType.TRANSFER -> transactions.addTransfer(amount, fromWalletId!!, toWalletId!!, note, occurredAt)
+            TransactionType.TRANSFER -> transactions.addTransfer(amount, fromWalletId!!, toWalletId!!, fee, note, occurredAt)
         }
     }
 
@@ -237,7 +248,7 @@ class AddTransactionViewModel(
         return when (tab) {
             TransactionType.EXPENSE -> base.copy(walletId = walletId!!, categoryId = expenseCategoryId, title = title.trim())
             TransactionType.INCOME -> base.copy(walletId = walletId!!, categoryId = incomeCategoryId)
-            TransactionType.TRANSFER -> base.copy(walletId = fromWalletId!!, toWalletId = toWalletId)
+            TransactionType.TRANSFER -> base.copy(walletId = fromWalletId!!, toWalletId = toWalletId, fee = fee)
         }
     }
 

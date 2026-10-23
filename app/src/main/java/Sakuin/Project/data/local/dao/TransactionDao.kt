@@ -63,11 +63,12 @@ interface TransactionDao {
         query: String?,
     ): Flow<List<TransactionWithDetails>>
 
+    /** Transfer fees count as expenses of the wallet they were paid from. */
     @Query(
         """
         SELECT
             COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount END), 0) AS income,
-            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount END), 0) AS expense
+            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount WHEN type = 'TRANSFER' THEN fee END), 0) AS expense
         FROM transactions
         WHERE occurredAt >= :start AND occurredAt < :end
             AND (:walletId IS NULL OR walletId = :walletId)
@@ -75,27 +76,42 @@ interface TransactionDao {
     )
     fun observeTotals(start: Long, end: Long, walletId: Long?): Flow<PeriodTotals>
 
+    /** Expenses per category, plus one row for transfer fees ([CategoryTotal.isTransferFee]) when there are any. */
     @Query(
         """
         SELECT t.categoryId AS categoryId,
             c.name AS categoryName,
             c.iconKey AS categoryIconKey,
-            SUM(t.amount) AS total
+            SUM(t.amount) AS total,
+            0 AS isTransferFee
         FROM transactions t
         LEFT JOIN categories c ON c.id = t.categoryId
         WHERE t.type = 'EXPENSE'
             AND t.occurredAt >= :start AND t.occurredAt < :end
             AND (:walletId IS NULL OR t.walletId = :walletId)
         GROUP BY t.categoryId
+        UNION ALL
+        SELECT NULL, NULL, NULL, SUM(fee), 1
+        FROM transactions
+        WHERE type = 'TRANSFER' AND fee > 0
+            AND occurredAt >= :start AND occurredAt < :end
+            AND (:walletId IS NULL OR walletId = :walletId)
+        GROUP BY type
         ORDER BY total DESC
         """
     )
     fun observeExpenseByCategory(start: Long, end: Long, walletId: Long?): Flow<List<CategoryTotal>>
 
+    /** Transfer fees come back as expense points. */
     @Query(
         """
         SELECT occurredAt, type, amount FROM transactions
         WHERE type IN ('INCOME', 'EXPENSE')
+            AND occurredAt >= :start AND occurredAt < :end
+            AND (:walletId IS NULL OR walletId = :walletId)
+        UNION ALL
+        SELECT occurredAt, 'EXPENSE', fee FROM transactions
+        WHERE type = 'TRANSFER' AND fee > 0
             AND occurredAt >= :start AND occurredAt < :end
             AND (:walletId IS NULL OR walletId = :walletId)
         """

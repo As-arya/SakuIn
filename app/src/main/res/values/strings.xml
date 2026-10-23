@@ -82,7 +82,10 @@
     <string name="scan_try_again">Try Again</string>
     <string name="scan_retake">Retake</string>
     <string name="scan_save">Save</string>
-    <string name="scan_no_camera">No camera app found. Choose a photo from the gallery instead.</string>
+    <string name="scan_camera_permission">Allow camera access to take a photo of your receipt.</string>
+    <string name="scan_allow_camera">Allow Camera</string>
+    <string name="scan_camera_unavailable">Camera unavailable. Choose a photo from the gallery instead.</string>
+    <string name="scan_capture_failed">Couldn’t take the photo. Try again.</string>
     <string name="scan_reading_title">Reading receipt…</string>
     <string name="scan_reading_body">Getting the total, date, store and category.</string>
     <string name="scan_total">Total</string>
@@ -198,7 +201,7 @@
     <string name="settings_group_scan">Receipt scan</string>
     <string name="settings_ai_scan">AI receipt scan</string>
     <string name="settings_keep_photos">Keep receipt photos</string>
-    <string name="settings_offline_note">All data is stored offline on this device.\nSakuin %1$s</string>
+    <string name="settings_version">V%1$s</string>
     <string name="category_add">Add category</string>
     <string name="category_new">New category</string>
     <string name="category_edit">Edit category</string>
@@ -208,7 +211,10 @@
     <string name="transfer_to">To</string>
     <string name="transfer_swap">Swap wallets</string>
     <string name="transfer_choose_wallet">Choose wallet</string>
-    <string name="transfer_info">Transfers are not counted as income or expense.</string>
+    <string name="transfer_info">Transfers are not counted as income or expense. The admin fee is counted as an expense.</string>
+    <string name="transfer_fee">Admin fee (optional)</string>
+    <string name="transfer_fee_label">Admin fee</string>
+    <string name="transfer_fee_caption">+ %1$s fee</string>
     <string name="transfer_negative_warning">%1$s will go below zero.</string>
     <string name="transfer_need_two_wallets">Add at least two wallets to make a transfer.</string>
     <string name="transfer_save">Save Transfer</string>

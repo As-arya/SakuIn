@@ -104,7 +104,7 @@ class ScanViewModel(
     val retriesSamePhoto: Boolean
         get() = (step as? ScanStep.Failed)?.error in RetrySamePhoto
 
-    fun cameraUri(): Uri = store.cameraUri()
+    fun cameraFile(): File = store.cameraFile()
 
     fun refreshConnection() = network.refresh()
 

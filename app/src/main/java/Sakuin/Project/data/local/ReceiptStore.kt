@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
-import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import Sakuin.Project.data.remote.ScanError
 import Sakuin.Project.data.remote.ScanException
@@ -25,10 +24,10 @@ class ReceiptStore(private val context: Context) {
     private val scanDir get() = File(context.cacheDir, "scan")
     private val cameraDir get() = File(context.cacheDir, "camera")
 
-    /** Where the camera app writes the next photo (shared through the FileProvider). */
-    fun cameraUri(): Uri {
+    /** Where the in-app camera writes the next photo; it is shrunk into a scan copy right after. */
+    fun cameraFile(): File {
         cameraDir.mkdirs()
-        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", File(cameraDir, "capture.jpg"))
+        return File(cameraDir, "capture.jpg")
     }
 
     /** Copies the photo at [uri] upright, at most [MAX_SIDE] px on its long side, as JPEG. */
@@ -85,8 +84,8 @@ class ReceiptStore(private val context: Context) {
 
     /**
      * Removes scan copies made before [startedAt] (an earlier run) and receipts no transaction
-     * points to any more (e.g. deleted transactions). The camera folder is left alone: a photo
-     * may still be on its way back from the camera app.
+     * points to any more (e.g. deleted transactions). The camera folder holds a single photo that
+     * the next capture overwrites.
      */
     suspend fun cleanUp(referenced: Collection<String>, startedAt: Long) = withContext(Dispatchers.IO) {
         scanDir.listFiles()?.forEach { if (it.lastModified() < startedAt) it.delete() }

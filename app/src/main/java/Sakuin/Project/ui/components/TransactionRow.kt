@@ -46,8 +46,9 @@ fun TransactionRow(
         t.type == TransactionType.TRANSFER -> t.note ?: transferTitle
         else -> t.note ?: item.categoryName.orEmpty()
     }
+    val feeCaption = if (t.fee > 0) stringResource(R.string.transfer_fee_caption, formatRupiah(t.fee)) else null
     val subtitle = when (t.type) {
-        TransactionType.TRANSFER -> "${item.walletName} → ${item.toWalletName.orEmpty()}"
+        TransactionType.TRANSFER -> listOfNotNull("${item.walletName} → ${item.toWalletName.orEmpty()}", feeCaption).joinToString(" · ")
         else -> listOfNotNull(item.categoryName, item.walletName).joinToString(" · ")
     }
     val (amountText, amountColor) = when (t.type) {

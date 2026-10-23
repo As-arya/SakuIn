@@ -150,6 +150,28 @@ class DataLayerTest {
     }
 
     @Test
+    fun transferFeesLeaveTheSourceWalletAndCountAsExpense() = runTest {
+        categories.ensureDefaults()
+        val cash = wallets.addWallet("My Wallet", WalletType.CASH, 0)
+        val bca = wallets.addWallet("BCA", WalletType.CARD, 1_000_000)
+        transactions.addExpense(18_000, bca, categoryId(CategoryKind.EXPENSE, "Food"), "Nasi Goreng", occurredAt = at(10, 3))
+        transactions.addTransfer(200_000, bca, cash, fee = 2_500, occurredAt = at(10, 6))
+        transactions.addTransfer(50_000, bca, cash, fee = 6_500, occurredAt = at(9, 20))
+
+        val balances = wallets.observeWallets().first().associate { it.wallet.id to it.balance }
+        assertEquals(1_000_000L - 18_000 - 202_500 - 56_500, balances[bca])
+        assertEquals(250_000L, balances[cash])
+
+        val range = october.toTimeRange(zone)
+        assertEquals(20_500L, transactions.observeTotals(range).first().expense)
+        assertEquals(0L, transactions.observeTotals(range, walletId = cash).first().expense)
+        val byCategory = transactions.observeExpenseByCategory(range).first()
+        assertEquals(listOf(18_000L to false, 2_500L to true), byCategory.map { it.total to it.isTransferFee })
+        val months = transactions.observeMonthlyTotals(october, count = 2, zone = zone).first()
+        assertEquals(listOf(6_500L, 20_500L), months.map { it.expense })
+    }
+
+    @Test
     fun monthlyTotalsCoverRequestedMonths() = runTest {
         categories.ensureDefaults()
         val cash = wallets.addWallet("My Wallet", WalletType.CASH, 0)

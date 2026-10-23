@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** One day in the list; [net] is income minus expense for that day (transfers are neutral). */
+/** One day in the list; [net] is income minus expense for that day (transfers count only their fee). */
 data class DayGroup(
     val date: LocalDate,
     val items: List<TransactionWithDetails>,
@@ -45,7 +45,7 @@ fun groupByDay(items: List<TransactionWithDetails>, zone: ZoneId): List<DayGroup
                 when (it.transaction.type) {
                     TransactionType.INCOME -> it.transaction.amount
                     TransactionType.EXPENSE -> -it.transaction.amount
-                    TransactionType.TRANSFER -> 0
+                    TransactionType.TRANSFER -> -it.transaction.fee
                 }
             }
             DayGroup(date, rows, net)

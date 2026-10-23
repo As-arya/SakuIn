@@ -31,8 +31,8 @@ android {
         applicationId = "Sakuin.Project"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -97,6 +97,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.okhttp)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 

@@ -33,7 +33,7 @@ interface WalletDao {
     suspend fun countTransactions(id: Long): Int
 
     /**
-     * Balance = initial balance + income − expenses − transfers out + transfers in.
+     * Balance = initial balance + income − expenses − transfers out (with their fees) + transfers in.
      */
     @Query(
         """
@@ -41,7 +41,7 @@ interface WalletDao {
             wallets.initialBalance
             + COALESCE((SELECT SUM(t.amount) FROM transactions t
                 WHERE t.walletId = wallets.id AND t.type = 'INCOME'), 0)
-            - COALESCE((SELECT SUM(t.amount) FROM transactions t
+            - COALESCE((SELECT SUM(t.amount + t.fee) FROM transactions t
                 WHERE t.walletId = wallets.id AND t.type IN ('EXPENSE', 'TRANSFER')), 0)
             + COALESCE((SELECT SUM(t.amount) FROM transactions t
                 WHERE t.toWalletId = wallets.id AND t.type = 'TRANSFER'), 0)

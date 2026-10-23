@@ -1,6 +1,7 @@
 package Sakuin.Project.data.local
 
 import android.content.Context
+import androidx.room3.AutoMigration
 import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
@@ -14,8 +15,10 @@ import Sakuin.Project.data.local.entity.WalletEntity
 
 @Database(
     entities = [WalletEntity::class, CategoryEntity::class, TransactionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    // 2: transfer admin fee (transactions.fee)
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class SakuinDatabase : RoomDatabase() {
     abstract fun walletDao(): WalletDao

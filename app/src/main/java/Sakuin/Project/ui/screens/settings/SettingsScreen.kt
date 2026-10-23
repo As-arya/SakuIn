@@ -115,7 +115,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenCategories: () -> Unit, onOpenWalle
                 SwitchRow(R.drawable.ic_image, R.string.settings_keep_photos, state.keepReceiptPhotos, viewModel::setKeepReceiptPhotos)
             }
             Text(
-                stringResource(R.string.settings_offline_note, BuildConfig.VERSION_NAME),
+                stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = SakuinTheme.spacing.sm),

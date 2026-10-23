@@ -85,4 +85,12 @@ class ReceiptDraftTest {
         assertEquals(now, receiptDateTime("2026-10-22", null, now))
         assertEquals(LocalDateTime.of(2026, 10, 20, 12, 0), receiptDateTime("2026-10-20", "late", now))
     }
+
+    @Test
+    fun receiptsFromAnEarlierMonthAreDatedNow() {
+        assertEquals(now, receiptDateTime("2026-09-30", "18:00", now))
+        // e.g. a misread year
+        assertEquals(now, receiptDateTime("2024-10-21", "19:05", now))
+        assertEquals(LocalDateTime.of(2026, 10, 1, 7, 30), receiptDateTime("2026-10-01", "07:30", now))
+    }
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,10 +56,12 @@ import Sakuin.Project.ui.components.SakuinPickerField
 import Sakuin.Project.ui.components.SakuinTextField
 import Sakuin.Project.ui.components.SakuinTopBar
 import Sakuin.Project.ui.components.SegmentedControl
+import Sakuin.Project.ui.components.ThousandsSeparatorTransformation
 import Sakuin.Project.ui.components.WalletIconBox
 import Sakuin.Project.ui.components.WalletPickerSheet
 import Sakuin.Project.ui.components.categoryIcon
 import Sakuin.Project.ui.components.icon
+import Sakuin.Project.ui.components.sanitizeAmountInput
 import Sakuin.Project.ui.sakuinViewModel
 import Sakuin.Project.ui.theme.SakuinTheme
 import Sakuin.Project.util.formatRupiah
@@ -66,6 +69,9 @@ import Sakuin.Project.util.parseRupiahInput
 import java.io.File
 
 private enum class PickerTarget { Wallet, From, To }
+
+/** Usual Indonesian fees: e-wallet top-up, BI-FAST, and an online interbank transfer. */
+private val CommonFees = listOf(1_000L, 2_500L, 6_500L)
 
 /** Figma 03–05: Expense / Income / Transfer form, also used to edit an existing transaction. */
 @Composable
@@ -324,6 +330,27 @@ private fun ColumnScope.TransferFields(
             )
         }
         WalletSelectRow(R.string.transfer_to, to, onClick = onPickTo)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.sm)) {
+        SakuinTextField(
+            value = viewModel.feeDigits,
+            onValueChange = { viewModel.onFeeChange(sanitizeAmountInput(it)) },
+            label = stringResource(R.string.transfer_fee),
+            leadingIcon = R.drawable.ic_coins,
+            placeholder = "0",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            visualTransformation = ThousandsSeparatorTransformation,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.sm)) {
+            CommonFees.forEach { preset ->
+                val selected = viewModel.feeDigits == preset.toString()
+                SakuinChip(
+                    label = formatRupiah(preset),
+                    selected = selected,
+                    onClick = { viewModel.onFeeChange(if (selected) "" else preset.toString()) },
+                )
+            }
+        }
     }
     if (viewModel.error == FormError.SameWallet) {
         ErrorText(R.string.error_two_wallets)

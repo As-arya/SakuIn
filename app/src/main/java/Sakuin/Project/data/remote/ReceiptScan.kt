@@ -4,6 +4,7 @@ import Sakuin.Project.data.local.entity.CategoryEntity
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneId
 import kotlinx.serialization.Serializable
 
@@ -98,7 +99,11 @@ fun ReceiptDto.toDraft(
     )
 }
 
-/** The receipt's date and time when they are readable and not in the future; otherwise [now]. */
+/**
+ * The receipt's date and time when they are readable, not in the future and in the current month;
+ * otherwise [now]. An older date (or a misread year) would file the expense under a past month,
+ * out of sight of the Transactions list, which opens on the current month.
+ */
 internal fun receiptDateTime(date: String?, time: String?, now: LocalDateTime): LocalDateTime {
     val day = date?.let { runCatching { LocalDate.parse(it.trim()) }.getOrNull() } ?: return now
     val clock = time?.let { runCatching { LocalTime.parse(it.trim()) }.getOrNull() }
@@ -108,5 +113,5 @@ internal fun receiptDateTime(date: String?, time: String?, now: LocalDateTime): 
         day == now.toLocalDate() -> now
         else -> day.atTime(12, 0)
     }
-    return if (dateTime.isAfter(now)) now else dateTime
+    return if (dateTime.isAfter(now) || YearMonth.from(dateTime) != YearMonth.from(now)) now else dateTime
 }

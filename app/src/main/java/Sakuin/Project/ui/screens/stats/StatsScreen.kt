@@ -311,9 +311,11 @@ private fun CategoryBreakdown(byCategory: List<CategoryTotal>) {
     val colors = SakuinTheme.colors
     val palette = listOf(colors.walletTotal, colors.walletCard, colors.walletEwallet, colors.walletCash, Color(0xFF8B5CF6))
     val uncategorized = stringResource(R.string.stats_uncategorized)
+    val transferFees = stringResource(R.string.transfer_fee_label)
     val others = stringResource(R.string.stats_others)
     val sorted = byCategory.filter { it.total > 0 }.sortedByDescending { it.total }
-    val slices = sorted.take(MaxSlices).mapIndexed { i, c -> Slice(c.categoryName ?: uncategorized, c.total, palette[i]) } +
+    fun CategoryTotal.label() = categoryName ?: if (isTransferFee) transferFees else uncategorized
+    val slices = sorted.take(MaxSlices).mapIndexed { i, c -> Slice(c.label(), c.total, palette[i]) } +
         sorted.drop(MaxSlices).sumOf { it.total }.takeIf { it > 0 }?.let { listOf(Slice(others, it, colors.textSecondary)) }.orEmpty()
     val total = slices.sumOf { it.amount }
 

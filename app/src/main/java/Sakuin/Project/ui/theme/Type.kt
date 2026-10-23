@@ -45,6 +45,8 @@ private fun style(weight: FontWeight, size: Int, lineHeight: Int, letterSpacing:
     fontSize = size.sp,
     lineHeight = lineHeight.sp,
     letterSpacing = letterSpacing.sp,
+    // Plus Jakarta Sans joins "fi"/"fl" into one glyph, which reads oddly in UI labels ("Clear filters").
+    fontFeatureSettings = "\"liga\" 0, \"clig\" 0",
 )
 
 internal val DefaultSakuinTypography = SakuinTypography(

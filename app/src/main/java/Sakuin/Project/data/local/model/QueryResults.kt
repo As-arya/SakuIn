@@ -27,12 +27,16 @@ data class PeriodTotals(
     val net: Long get() = income - expense
 }
 
-/** Expense total for one category; [categoryId] is null for uncategorized expenses. */
+/**
+ * Expense total for one category; [categoryId] is null for uncategorized expenses and for the
+ * transfer fees row ([isTransferFee]).
+ */
 data class CategoryTotal(
     val categoryId: Long?,
     val categoryName: String?,
     val categoryIconKey: String?,
     val total: Long,
+    val isTransferFee: Boolean = false,
 )
 
 /** Minimal income/expense row; month bucketing happens in Kotlin so it follows the device time zone. */

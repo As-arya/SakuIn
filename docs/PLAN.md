@@ -28,7 +28,7 @@ util (RupiahFormatter, DateUtils, NetworkMonitor, ImageCompressor)
 - `navigation-compose` (type-safe routes) · Room (`room-runtime`, `room-ktx`, `room-compiler` via KSP) · DataStore Preferences
 - Chart: bar chart & donut custom dengan Compose (`Box`/`Canvas`), tanpa Vico (lihat Fase 6)
 - OkHttp + kotlinx-serialization-json untuk REST Gemini (`generateContent` dengan `inline_data` image + `responseSchema` JSON)
-- `ActivityResultContracts.TakePicture` + `PickVisualMedia` (tanpa CameraX untuk v1); thumbnail resi tanpa Coil (lihat Fase 7)
+- CameraX 1.6 (`camera-compose` `CameraXViewfinder` + `ImageCapture`) untuk kamera di dalam app, `PickVisualMedia` untuk galeri; thumbnail resi tanpa Coil (lihat Fase 7)
 - Test: JUnit, kotlinx-coroutines-test, Turbine, Room in-memory (androidTest), Compose UI test
 
 ### Fase 0 — Dokumen
@@ -50,7 +50,7 @@ Belum dikerjakan di fase ini: KSP + Room (dipindah ke Fase 3 — Room terbaru ad
 - `settings.gradle.kts`: `rootProject.name = "Sakuin"`.
 - `gradle/libs.versions.toml` + `app/build.gradle.kts`: tambah Compose, KSP, Room, Navigation, serialization, dll; `buildFeatures { compose = true; buildConfig = true }`; `GEMINI_API_KEY` dari `local.properties` → `BuildConfig`.
 - Ganti `MainActivity` jadi `ComponentActivity` + `setContent { SakuinTheme { SakuinNavHost() } }`; hapus `res/layout/activity_main.xml`; rename tema `Theme.MyApplication` → `Theme.Sakuin` (`res/values/themes.xml`, `values-night`, Manifest); `app_name` = "Sakuin".
-- `SakuinApplication` + `AppContainer`; Manifest: `android:name`, izin `INTERNET`, `ACCESS_NETWORK_STATE`, `FileProvider` untuk foto kamera.
+- `SakuinApplication` + `AppContainer`; Manifest: `android:name`, izin `INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA` (diminta saat scan dibuka).
 - Theme Compose dari token Figma; scaffold bottom nav ikon-saja (Home, Transactions, [+], Stats, Wallets).
 - String resource berbahasa Inggris (`res/values/strings.xml`).
 
@@ -101,7 +101,7 @@ Belum dikerjakan di fase ini: KSP + Room (dipindah ke Fase 3 — Room terbaru ad
 - Model default `gemini-3.6-flash` (GA), cadangan `gemini-3.8-flash`, lewat REST `generateContent`: foto sebagai `inlineData`, `responseSchema` JSON dengan `enum` nama kategori aktif, `thinkingLevel: LOW` agar cepat. Model berikutnya dipakai bila model sudah dipensiunkan (404) atau tetap error 5xx setelah retry. Catatan Okt 2026: `gemini-3.8-flash` (dan `gemini-flash-latest`) tercantum untuk key proyek tetapi request-nya menggantung, sedangkan 3.6 menjawab dalam beberapa detik; `gemini-2.5-flash` sudah 404. Key dikirim di header `x-goog-api-key`, tidak pernah di URL; build menerima key di `local.properties` dengan atau tanpa tanda kutip. OkHttp; timeout total 60 detik; error 5xx dicoba ulang 2× (1 dtk, 2 dtk), 429 tidak.
 - Prompt meminta nama toko & item dalam title case dan harga per baris apa adanya (tidak dikali jumlah) — dua hal ini sempat salah pada uji pertama dengan resi contoh.
 - `data/remote`: `GeminiReceiptClient`, `ReceiptDto` → `ReceiptDraft` (`toDraft`: kategori dicocokkan per nama, fallback "Others"; total kosong → jumlah item; tanggal di masa depan → sekarang; tanggal hari ini tanpa jam → sekarang). `ScanError` membedakan NotConfigured, Image, Network, Timeout, Busy, Server, NotReceipt, Unreadable — masing-masing punya pesan sendiri.
-- `data/local/ReceiptStore`: foto dari kamera (`TakePicture` + FileProvider) atau galeri (`PickVisualMedia`) diputar sesuai EXIF, diperkecil ke sisi panjang maks. 1600 px, JPEG 80 di `cache/scan`; saat disimpan disalin ke `files/receipts/` dan path relatif disimpan di `receiptImagePath`. Saat app start, salinan scan lama dan foto yang tidak lagi dipakai transaksi (mis. sudah dihapus) dibersihkan.
+- `data/local/ReceiptStore`: foto dari kamera di dalam app (CameraX, ke `cache/camera/capture.jpg`) atau galeri (`PickVisualMedia`) diputar sesuai EXIF, diperkecil ke sisi panjang maks. 1600 px, JPEG 80 di `cache/scan`; saat disimpan disalin ke `files/receipts/` dan path relatif disimpan di `receiptImagePath`. Saat app start, salinan scan lama dan foto yang tidak lagi dipakai transaksi (mis. sudah dihapus) dibersihkan.
 - `util/NetworkMonitor`: callback default network → `StateFlow<Boolean>`; layar scan langsung pindah ke/dari layar offline.
 - `ui/screens/scan`: Capture (gelap seperti kamera, ikon status bar putih), Reading (garis scan beranimasi, Cancel), Review (thumbnail → foto layar penuh, ubah tanggal, Total bisa diedit, daftar item, chip kategori dengan tanda AI, nama item, Pay from), Problem (offline/error: Add Manually + Try Again). Back dari Reading/Review/Error kembali ke Capture.
 - Pintu masuk: quick action Home dan ikon scan di app bar Add Transaction (tab Expense). Dari form: "Add Manually" kembali ke form yang sama, Save menutup scan dan form.

@@ -83,10 +83,12 @@ class TransactionRepository(
         occurredAt = occurredAt,
     )
 
+    /** [fee] is the admin fee, taken from [fromWalletId] on top of [amount]. */
     suspend fun addTransfer(
         amount: Long,
         fromWalletId: Long,
         toWalletId: Long,
+        fee: Long = 0,
         note: String? = null,
         occurredAt: Long = clock(),
     ): Long {
@@ -94,6 +96,7 @@ class TransactionRepository(
         return insert(
             type = TransactionType.TRANSFER,
             amount = amount,
+            fee = fee,
             walletId = fromWalletId,
             toWalletId = toWalletId,
             note = note,
@@ -161,6 +164,7 @@ class TransactionRepository(
     private suspend fun insert(
         type: TransactionType,
         amount: Long,
+        fee: Long = 0,
         walletId: Long,
         toWalletId: Long? = null,
         categoryId: Long? = null,
@@ -173,6 +177,7 @@ class TransactionRepository(
         val transaction = TransactionEntity(
             type = type,
             amount = amount,
+            fee = fee,
             walletId = walletId,
             toWalletId = toWalletId,
             categoryId = categoryId,
@@ -193,9 +198,11 @@ class TransactionRepository(
             TransactionType.TRANSFER -> {
                 requireNotNull(transaction.toWalletId) { "Transfer needs a destination wallet" }
                 require(transaction.toWalletId != transaction.walletId) { "Choose two different wallets" }
+                require(transaction.fee >= 0) { "Fee cannot be negative" }
             }
             TransactionType.EXPENSE, TransactionType.INCOME -> {
                 require(transaction.toWalletId == null) { "Only transfers have a destination wallet" }
+                require(transaction.fee == 0L) { "Only transfers have a fee" }
                 requireNotNull(transaction.categoryId) { "Category is required" }
             }
         }

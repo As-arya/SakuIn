@@ -1,7 +1,12 @@
 package Sakuin.Project.ui.screens.scan
 
-import android.content.ActivityNotFoundException
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -10,6 +15,14 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.camera.compose.CameraXViewfinder
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.core.SurfaceRequest
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -23,10 +36,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +59,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +67,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -62,7 +78,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -76,7 +91,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import Sakuin.Project.R
 import Sakuin.Project.data.local.entity.CategoryEntity
@@ -104,6 +124,8 @@ import Sakuin.Project.ui.theme.SakuinTheme
 import Sakuin.Project.util.formatRupiah
 import Sakuin.Project.util.parseRupiahInput
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.awaitCancellation
 
 // The capture step looks like a camera in both themes (Figma 09).
 private val CameraBar = Palette.Gray850
@@ -111,14 +133,19 @@ private val CameraBody = Palette.Gray800
 private val CameraButton = Palette.Gray700
 private val CameraContent = Palette.Gray0
 private val CameraMuted = Palette.Gray400
+/** Behind text laid over the live preview. */
+private val Scrim = Color.Black.copy(alpha = 0.45f)
 /** Off-white paper in the receipt illustrations. */
 private val Paper = Color(0xFFF8F8F4)
 
 private const val CollapsedItems = 5
 
+private const val TAG = "ReceiptCamera"
+
 /**
- * Receipt scan (Figma 09–12). Photos come from the system camera or the photo picker, are read by
- * Gemini, and land on a review screen where everything can be corrected before saving the expense.
+ * Receipt scan (Figma 09–12). Opens straight into the in-app camera (the photo picker sits at the
+ * bottom left); the photo is read by Gemini and lands on a review screen where everything can be
+ * corrected before saving the expense.
  */
 @Composable
 fun ScanScreen(
@@ -140,25 +167,9 @@ fun ScanScreen(
     }
     val online by viewModel.isOnline.collectAsStateWithLifecycle()
     val step = viewModel.step
-    val context = LocalContext.current
 
-    // Survives the activity being recreated while the camera app is open.
-    var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
-        val uri = cameraUri
-        if (taken && uri != null) viewModel.onPhoto(uri)
-    }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) viewModel.onPhoto(uri)
-    }
-    val takePhoto = {
-        val uri = viewModel.cameraUri()
-        cameraUri = uri
-        try {
-            camera.launch(uri)
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(context, R.string.scan_no_camera, Toast.LENGTH_LONG).show()
-        }
     }
     val pickPhoto = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
 
@@ -178,8 +189,9 @@ fun ScanScreen(
             onTryAgain = viewModel::refreshConnection,
         )
         step == ScanStep.Capture -> CaptureContent(
+            cameraFile = viewModel::cameraFile,
             onClose = onBack,
-            onTakePhoto = takePhoto,
+            onPhoto = viewModel::onPhoto,
             onPickPhoto = pickPhoto,
             onAddManually = onAddManually,
         )
@@ -218,13 +230,69 @@ private fun LightSystemBarIcons(enabled: Boolean) {
     }
 }
 
+/** Live camera (Figma 09): gallery bottom left, shutter in the middle, manual entry bottom right. */
 @Composable
 private fun CaptureContent(
+    cameraFile: () -> File,
     onClose: () -> Unit,
-    onTakePhoto: () -> Unit,
+    onPhoto: (Uri) -> Unit,
     onPickPhoto: () -> Unit,
     onAddManually: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val activity = LocalActivity.current
+    val imageCapture = remember {
+        ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
+    }
+    var cameraUnavailable by remember { mutableStateOf(false) }
+    var capturing by remember { mutableStateOf(false) }
+
+    // Asked once when the scan opens; checked again on resume, e.g. back from the app's settings.
+    var granted by remember { mutableStateOf(context.hasCameraPermission()) }
+    var asked by rememberSaveable { mutableStateOf(false) }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
+    LaunchedEffect(Unit) {
+        if (!granted && !asked) {
+            asked = true
+            permission.launch(Manifest.permission.CAMERA)
+        }
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { granted = context.hasCameraPermission() }
+    val askAgain = {
+        if (activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA)) {
+            // Denied for good: only the app's settings can grant it now.
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+            )
+        } else {
+            permission.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    val cameraReady = granted && !cameraUnavailable
+    val takePhoto = {
+        if (cameraReady && !capturing) {
+            capturing = true
+            val file = cameraFile()
+            imageCapture.takePicture(
+                ImageCapture.OutputFileOptions.Builder(file).build(),
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        capturing = false
+                        onPhoto(Uri.fromFile(file))
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.w(TAG, "Photo capture failed", exception)
+                        capturing = false
+                        Toast.makeText(context, R.string.scan_capture_failed, Toast.LENGTH_SHORT).show()
+                    }
+                },
+            )
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -250,20 +318,35 @@ private fun CaptureContent(
             )
             Spacer(Modifier.size(48.dp))
         }
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .background(CameraBody),
+                .background(CameraBody)
+                .clipToBounds(),
             contentAlignment = Alignment.Center,
         ) {
-            val frameHeight = minOf(340.dp, maxHeight * 0.7f)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.xl),
-            ) {
-                ReceiptViewfinder(Modifier.size(width = frameHeight * (240f / 340f), height = frameHeight))
-                Text(stringResource(R.string.scan_hint), style = SakuinTheme.typography.bodyMedium, color = CameraMuted)
+            when {
+                cameraUnavailable -> CameraMessage(R.string.scan_camera_unavailable)
+                granted -> {
+                    CameraPreview(imageCapture, onUnavailable = { cameraUnavailable = true }, Modifier.fillMaxSize())
+                    CornerBrackets(
+                        Modifier
+                            .fillMaxWidth(0.8f)
+                            .fillMaxHeight(0.78f),
+                    )
+                    Text(
+                        stringResource(R.string.scan_hint),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = SakuinTheme.spacing.lg)
+                            .background(Scrim, CircleShape)
+                            .padding(horizontal = SakuinTheme.spacing.md, vertical = 6.dp),
+                        style = SakuinTheme.typography.labelMedium,
+                        color = CameraContent,
+                    )
+                }
+                else -> CameraMessage(R.string.scan_camera_permission, action = R.string.scan_allow_camera, onAction = askAgain)
             }
         }
         Row(
@@ -275,9 +358,60 @@ private fun CaptureContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CameraSideButton(R.drawable.ic_image, stringResource(R.string.scan_pick_photo), onPickPhoto)
-            ShutterButton(onTakePhoto)
+            ShutterButton(enabled = cameraReady && !capturing, onClick = takePhoto)
             CameraSideButton(R.drawable.ic_edit, stringResource(R.string.scan_add_manually), onAddManually)
         }
+    }
+}
+
+private fun Context.hasCameraPermission() =
+    ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+/** Back camera preview bound to the screen's lifecycle, together with [imageCapture]. */
+@Composable
+private fun CameraPreview(imageCapture: ImageCapture, onUnavailable: () -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
+    val preview = remember { Preview.Builder().build().apply { setSurfaceProvider { surfaceRequest = it } } }
+    LaunchedEffect(lifecycleOwner) {
+        val provider = try {
+            ProcessCameraProvider.awaitInstance(context.applicationContext).also {
+                it.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // No back camera, or the camera service could not start.
+            Log.w(TAG, "Camera unavailable", e)
+            onUnavailable()
+            return@LaunchedEffect
+        }
+        try {
+            awaitCancellation()
+        } finally {
+            provider.unbind(preview, imageCapture)
+        }
+    }
+    surfaceRequest?.let { CameraXViewfinder(surfaceRequest = it, modifier = modifier) }
+}
+
+/** Shown in place of the preview: why there is no camera, and what to do about it. */
+@Composable
+private fun CameraMessage(@StringRes text: Int, @StringRes action: Int? = null, onAction: () -> Unit = {}) {
+    Column(
+        modifier = Modifier.padding(horizontal = SakuinTheme.spacing.xxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(SakuinTheme.spacing.lg),
+    ) {
+        Icon(painterResource(R.drawable.ic_camera), null, Modifier.size(44.dp), tint = CameraContent)
+        Text(
+            stringResource(text),
+            style = SakuinTheme.typography.bodyMedium,
+            color = CameraMuted,
+            textAlign = TextAlign.Center,
+        )
+        if (action != null) SakuinButton(text = stringResource(action), onClick = onAction)
     }
 }
 
@@ -296,15 +430,16 @@ private fun CameraSideButton(@DrawableRes icon: Int, label: String, onClick: () 
 }
 
 @Composable
-private fun ShutterButton(onClick: () -> Unit) {
+private fun ShutterButton(enabled: Boolean, onClick: () -> Unit) {
     val label = stringResource(R.string.scan_take_photo)
     Box(
         modifier = Modifier
             .size(76.dp)
+            .alpha(if (enabled) 1f else 0.4f)
             .clip(CircleShape)
             .border(4.dp, CameraContent, CircleShape)
             .semantics { contentDescription = label }
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -316,9 +451,9 @@ private fun ShutterButton(onClick: () -> Unit) {
     }
 }
 
-/** Corner brackets around a slightly tilted receipt, as in the Figma capture frame. */
+/** Corner brackets over the preview, framing where the receipt should go. */
 @Composable
-private fun ReceiptViewfinder(modifier: Modifier) {
+private fun CornerBrackets(modifier: Modifier) {
     Canvas(modifier) {
         val arm = size.minDimension * 0.17f
         val radius = 14.dp.toPx()
@@ -336,12 +471,6 @@ private fun ReceiptViewfinder(modifier: Modifier) {
                 }
                 drawPath(path, CameraContent, style = stroke)
             }
-        rotate(degrees = 3f) {
-            val paper = Size(w * 0.78f, h * 0.78f)
-            val topLeft = Offset((w - paper.width) / 2, (h - paper.height) / 2)
-            drawRoundRect(Paper, topLeft, paper, CornerRadius(6.dp.toPx()))
-            drawReceiptLines(topLeft, paper)
-        }
     }
 }
 
