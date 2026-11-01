@@ -58,3 +58,21 @@ ehthumbs.db
 .vscode/
 *.swp
 *~
+
+# ===== AI assistant files & working notes =====
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.mcp.json
+.cursor/
+.cursorrules
+.windsurf/
+.aider*
+.codex/
+.continue/
+.github/copilot-instructions.md
+docs/PLAN.md
+docs/PRD.md
+docs/PORTFOLIO.md
